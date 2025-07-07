@@ -1,0 +1,13 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: CMFRestClass
+metadata:
+  name: cmfrestclass
+  namespace: confluent
+spec:
+  cmfRest:
+    endpoint: https://cmf-service:80
+    authentication:
+      type: mtls
+      sslClientAuthentication: true
+    tls:
+      secretRef: cmfrestclass-tls

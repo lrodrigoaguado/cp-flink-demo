@@ -1,0 +1,285 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+metadata:
+  name: kraftcontroller
+  namespace: confluent
+spec:
+  dataVolumeCapacity: 2G
+  image:
+    application: confluentinc/cp-server:8.0.0
+    init: confluentinc/confluent-init-container:3.0.0
+  listeners:
+    controller:
+      tls:
+        enabled: true
+      authentication:
+        type: mtls
+        principalMappingRules:
+          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+  tls:
+    secretRef: kraftcontroller-tls
+  replicas: 1
+  dependencies:
+    metricsClient:
+      url: https://controlcenter-ng.confluent.svc.cluster.local:9090
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+        secretRef: prometheus-client-tls
+  configOverrides:
+    server:
+      - sni.host.check.enabled=false
+      - metric.reporters=io.confluent.telemetry.reporter.TelemetryReporter
+      - confluent.telemetry.exporter._c3.type=http
+      - confluent.telemetry.exporter._c3.enabled=true
+      - confluent.telemetry.exporter._c3.metrics.include=io.confluent.kafka.server.request.(?!.*delta).*|io.confluent.kafka.server.server.broker.state|io.confluent.kafka.server.replica.manager.leader.count|io.confluent.kafka.server.request.queue.size|io.confluent.kafka.server.broker.topic.failed.produce.requests.rate.1.min|io.confluent.kafka.server.tier.archiver.total.lag|io.confluent.kafka.server.request.total.time.ms.p99|io.confluent.kafka.server.broker.topic.failed.fetch.requests.rate.1.min|io.confluent.kafka.server.broker.topic.total.fetch.requests.rate.1.min|io.confluent.kafka.server.partition.caught.up.replicas.count|io.confluent.kafka.server.partition.observer.replicas.count|io.confluent.kafka.server.tier.tasks.num.partitions.in.error|io.confluent.kafka.server.broker.topic.bytes.out.rate.1.min|io.confluent.kafka.server.request.total.time.ms.p95|io.confluent.kafka.server.controller.active.controller.count|io.confluent.kafka.server.session.expire.listener.zookeeper.disconnects.total|io.confluent.kafka.server.request.total.time.ms.p999|io.confluent.kafka.server.controller.active.broker.count|io.confluent.kafka.server.request.handler.pool.request.handler.avg.idle.percent.rate.1.min|io.confluent.kafka.server.session.expire.listener.zookeeper.disconnects.rate.1.min|io.confluent.kafka.server.controller.unclean.leader.elections.rate.1.min|io.confluent.kafka.server.replica.manager.partition.count|io.confluent.kafka.server.controller.unclean.leader.elections.total|io.confluent.kafka.server.partition.replicas.count|io.confluent.kafka.server.broker.topic.total.produce.requests.rate.1.min|io.confluent.kafka.server.controller.offline.partitions.count|io.confluent.kafka.server.socket.server.network.processor.avg.idle.percent|io.confluent.kafka.server.partition.under.replicated|io.confluent.kafka.server.log.log.start.offset|io.confluent.kafka.server.log.tier.size|io.confluent.kafka.server.log.size|io.confluent.kafka.server.tier.fetcher.bytes.fetched.total|io.confluent.kafka.server.request.total.time.ms.p50|io.confluent.kafka.server.tenant.consumer.lag.offsets|io.confluent.kafka.server.session.expire.listener.zookeeper.expires.rate.1.min|io.confluent.kafka.server.log.log.end.offset|io.confluent.kafka.server.broker.topic.bytes.in.rate.1.min|io.confluent.kafka.server.partition.under.min.isr|io.confluent.kafka.server.partition.in.sync.replicas.count|io.confluent.telemetry.http.exporter.batches.dropped|io.confluent.telemetry.http.exporter.items.total|io.confluent.telemetry.http.exporter.items.succeeded|io.confluent.telemetry.http.exporter.send.time.total.millis|io.confluent.kafka.server.controller.leader.election.rate.(?!.*delta).*|io.confluent.telemetry.http.exporter.batches.failed
+      - confluent.telemetry.exporter._c3.client.base.url=https://controlcenter-ng.confluent.svc.cluster.local:9090/api/v1/otlp
+      - confluent.telemetry.exporter._c3.client.compression=gzip
+      - confluent.telemetry.exporter._c3.api.key=dummy
+      - confluent.telemetry.exporter._c3.api.secret=dummy
+      - confluent.telemetry.exporter._c3.buffer.pending.batches.max=80
+      - confluent.telemetry.exporter._c3.buffer.batch.items.max=4000
+      - confluent.telemetry.exporter._c3.buffer.inflight.submissions.max=10
+      - confluent.telemetry.metrics.collector.interval.ms=60000
+      - confluent.telemetry.remoteconfig._confluent.enabled=false
+      - confluent.consumer.lag.emitter.enabled=true
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: confluent
+spec:
+  replicas: 3
+  image:
+    application: confluentinc/cp-server:8.0.0
+    init: confluentinc/confluent-init-container:3.0.0
+  dataVolumeCapacity: 10Gi
+  tls:
+    secretRef: kafka-tls
+  listeners:
+    internal:
+      authentication:
+        type: mtls
+        principalMappingRules:
+          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+      tls:
+        enabled: true
+    external:
+      authentication:
+        type: mtls
+        principalMappingRules:
+          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+      tls:
+        enabled: true
+  dependencies:
+    kRaftController:
+      controllerListener:
+        tls:
+          enabled: true
+        authentication:
+          type: mtls
+      clusterRef:
+        name: kraftcontroller
+    metricsClient:
+      url: https://controlcenter-ng.confluent.svc.cluster.local:9090
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+        secretRef: prometheus-client-tls
+  configOverrides:
+    server:
+      - sni.host.check.enabled=false
+      - metric.reporters=io.confluent.telemetry.reporter.TelemetryReporter
+      - confluent.telemetry.exporter._c3.type=http
+      - confluent.telemetry.exporter._c3.enabled=true
+      - confluent.telemetry.exporter._c3.metrics.include=io.confluent.kafka.server.request.(?!.*delta).*|io.confluent.kafka.server.server.broker.state|io.confluent.kafka.server.replica.manager.leader.count|io.confluent.kafka.server.request.queue.size|io.confluent.kafka.server.broker.topic.failed.produce.requests.rate.1.min|io.confluent.kafka.server.tier.archiver.total.lag|io.confluent.kafka.server.request.total.time.ms.p99|io.confluent.kafka.server.broker.topic.failed.fetch.requests.rate.1.min|io.confluent.kafka.server.broker.topic.total.fetch.requests.rate.1.min|io.confluent.kafka.server.partition.caught.up.replicas.count|io.confluent.kafka.server.partition.observer.replicas.count|io.confluent.kafka.server.tier.tasks.num.partitions.in.error|io.confluent.kafka.server.broker.topic.bytes.out.rate.1.min|io.confluent.kafka.server.request.total.time.ms.p95|io.confluent.kafka.server.controller.active.controller.count|io.confluent.kafka.server.session.expire.listener.zookeeper.disconnects.total|io.confluent.kafka.server.request.total.time.ms.p999|io.confluent.kafka.server.controller.active.broker.count|io.confluent.kafka.server.request.handler.pool.request.handler.avg.idle.percent.rate.1.min|io.confluent.kafka.server.session.expire.listener.zookeeper.disconnects.rate.1.min|io.confluent.kafka.server.controller.unclean.leader.elections.rate.1.min|io.confluent.kafka.server.replica.manager.partition.count|io.confluent.kafka.server.controller.unclean.leader.elections.total|io.confluent.kafka.server.partition.replicas.count|io.confluent.kafka.server.broker.topic.total.produce.requests.rate.1.min|io.confluent.kafka.server.controller.offline.partitions.count|io.confluent.kafka.server.socket.server.network.processor.avg.idle.percent|io.confluent.kafka.server.partition.under.replicated|io.confluent.kafka.server.log.log.start.offset|io.confluent.kafka.server.log.tier.size|io.confluent.kafka.server.log.size|io.confluent.kafka.server.tier.fetcher.bytes.fetched.total|io.confluent.kafka.server.request.total.time.ms.p50|io.confluent.kafka.server.tenant.consumer.lag.offsets|io.confluent.kafka.server.session.expire.listener.zookeeper.expires.rate.1.min|io.confluent.kafka.server.log.log.end.offset|io.confluent.kafka.server.broker.topic.bytes.in.rate.1.min|io.confluent.kafka.server.partition.under.min.isr|io.confluent.kafka.server.partition.in.sync.replicas.count|io.confluent.telemetry.http.exporter.batches.dropped|io.confluent.telemetry.http.exporter.items.total|io.confluent.telemetry.http.exporter.items.succeeded|io.confluent.telemetry.http.exporter.send.time.total.millis|io.confluent.kafka.server.controller.leader.election.rate.(?!.*delta).*|io.confluent.telemetry.http.exporter.batches.failed
+      - confluent.telemetry.exporter._c3.client.base.url=https://controlcenter-ng.confluent.svc.cluster.local:9090/api/v1/otlp
+      - confluent.telemetry.exporter._c3.client.compression=gzip
+      - confluent.telemetry.exporter._c3.api.key=dummy
+      - confluent.telemetry.exporter._c3.api.secret=dummy
+      - confluent.telemetry.exporter._c3.buffer.pending.batches.max=80
+      - confluent.telemetry.exporter._c3.buffer.batch.items.max=4000
+      - confluent.telemetry.exporter._c3.buffer.inflight.submissions.max=10
+      - confluent.telemetry.metrics.collector.interval.ms=60000
+      - confluent.telemetry.remoteconfig._confluent.enabled=false
+      - confluent.consumer.lag.emitter.enabled=true
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: SchemaRegistry
+metadata:
+  name: schemaregistry
+  namespace: confluent
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-schema-registry:8.0.0
+    init: confluentinc/confluent-init-container:3.0.0
+  tls:
+    secretRef: schemaregistry-tls
+  authentication:
+    type: mtls
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9071
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+  configOverrides:
+    server:
+      - sni.host.check.enabled=false
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connect
+metadata:
+  name: connect
+  namespace: confluent
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-server-connect:8.0.0
+    init: confluentinc/confluent-init-container:3.0.0
+  tls:
+    secretRef: connect-tls
+  authentication:
+    type: mtls
+  build:
+    type: onDemand
+    onDemand:
+      plugins:
+        locationType: confluentHub
+        confluentHub:
+          - name: kafka-connect-datagen
+            owner: confluentinc
+            version: 0.6.7
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9071
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+    schemaRegistry:
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+      url: https://schemaregistry.confluent.svc.cluster.local:8081
+  configOverrides:
+    server:
+      - sni.host.check.enabled=false
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaRestProxy
+metadata:
+  name: kafkarestproxy
+  namespace: confluent
+spec:
+  image:
+    application: confluentinc/cp-kafka-rest:8.0.0
+    init: confluentinc/confluent-init-container:3.0.0
+  replicas: 1
+  tls:
+    secretRef: krp-tls
+  authentication:
+    type: mtls
+  podTemplate:
+    podSecurityContext:
+      fsGroup: 1000
+      runAsUser: 1000
+      runAsNonRoot: true
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9071
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+    schemaRegistry:
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+      url: https://schemaregistry.confluent.svc.cluster.local:8081
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ControlCenter
+metadata:
+  name: controlcenter-ng
+  namespace: confluent
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-enterprise-control-center-next-gen:2.2.0
+    init: confluentinc/confluent-init-container:3.0.0
+  dataVolumeCapacity: 10Gi
+  tls:
+    secretRef: controlcenter-ng-tls
+  authentication:
+    type: mtls
+  dependencies:
+    prometheusClient:
+      url: https://controlcenter-ng.confluent.svc.cluster.local:9090
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+        secretRef: prometheus-client-tls
+    alertManagerClient:
+      url: https://controlcenter-ng.confluent.svc.cluster.local:9093
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+        secretRef: alertmanager-client-tls
+    schemaRegistry:
+      url: https://schemaregistry.confluent.svc.cluster.local:8081
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+    connect:
+      - name: connect
+        url: https://connect.confluent.svc.cluster.local:8083
+        authentication:
+          type: mtls
+        tls:
+          enabled: true
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9071
+      authentication:
+        type: mtls
+      tls:
+        enabled: true
+  services:
+    prometheus:
+       image: confluentinc/cp-enterprise-prometheus:2.2.0
+       authentication:
+         type: mtls
+       tls:
+         secretRef: prometheus-tls
+       pvc:
+         dataVolumeCapacity: 10Gi
+    alertmanager:
+       image: confluentinc/cp-enterprise-alertmanager:2.2.0
+       authentication:
+         type: mtls
+       tls:
+         secretRef: alertmanager-tls
+  configOverrides:
+    server:
+      - confluent.controlcenter.cmf.enable=True
+      - confluent.controlcenter.cmf.url=https://cmf-service:80
+      - confluent.controlcenter.cmf.ssl.truststore.location=/mnt/secrets/cmf-tls/truststore.jks
+      - confluent.controlcenter.cmf.ssl.truststore.password=confluent
+      - confluent.controlcenter.cmf.ssl.truststore.type=jks
+      - confluent.controlcenter.cmf.ssl.keystore.location=/mnt/secrets/cmf-tls/keystore.jks
+      - confluent.controlcenter.cmf.ssl.keystore.password=confluent
+      - confluent.controlcenter.cmf.ssl.truststore.type=jks
+      - confluent.controlcenter.cmf.ssl.key.password=confluent
+      - sni.host.check.enabled=False
+  mountedSecrets:
+  - secretRef: cmf-tls

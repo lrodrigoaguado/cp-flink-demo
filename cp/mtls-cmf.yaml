@@ -1,0 +1,38 @@
+cmf:
+  ssl:
+    keystore: /opt/keystore/keystore.jks
+    keystore-password: confluent
+    trust-store: /opt/truststore/truststore.jks
+    trust-store-password: confluent
+    client-auth: need
+  authentication:
+    type: mtls
+  k8s:
+    enabled: true
+mountedVolumes:
+  volumeMounts:
+    - name: truststore
+      mountPath: /opt/truststore
+    - name: keystore
+      mountPath: /opt/keystore
+    - name: cert-password
+      mountPath: /opt/cert-password
+  volumes:
+    - name: truststore
+      secret:
+        secretName: cmf-tls
+        items:
+          - key: truststore.jks
+            path: truststore.jks
+    - name: keystore
+      secret:
+        secretName: cmf-tls
+        items:
+          - key: keystore.jks
+            path: keystore.jks
+    - name: cert-password
+      secret:
+        secretName: cmf-tls
+        items:
+          - key: jksPassword.txt
+            path: jksPassword.txt

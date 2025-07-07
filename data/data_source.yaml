@@ -1,0 +1,99 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: vehicle-description
+  namespace: confluent
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: confluent
+  connectRest:
+    endpoint: https://connect.confluent.svc.cluster.local:8083
+    authentication:
+      type: mtls
+    tls:
+      secretRef: connector-tls
+  configs:
+    kafka.topic: "vehicle-description"
+    quickstart: "fleet_mgmt_description"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schemas.enable: "true"
+    max.interval: "1000"
+    iterations: "100000"
+    value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
+    value.converter.enhanced.avro.schema.support: "true"
+    value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
+    value.converter.schema.registry.ssl.truststore.password: confluent
+    value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
+    value.converter.schema.registry.ssl.keystore.password: confluent
+    value.converter.schema.registry.ssl.key.password: confluent
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: vehicle-location
+  namespace: confluent
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: confluent
+  connectRest:
+    endpoint: https://connect.confluent.svc.cluster.local:8083
+    authentication:
+      type: mtls
+    tls:
+      secretRef: connector-tls
+  configs:
+    kafka.topic: "vehicle-location"
+    quickstart: "fleet_mgmt_location"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schemas.enable: "true"
+    max.interval: "1000"
+    iterations: "100000"
+    value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
+    value.converter.enhanced.avro.schema.support: "true"
+    value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
+    value.converter.schema.registry.ssl.truststore.password: confluent
+    value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
+    value.converter.schema.registry.ssl.keystore.password: confluent
+    value.converter.schema.registry.ssl.key.password: confluent
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: vehicle-info
+  namespace: confluent
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: confluent
+  connectRest:
+    endpoint: https://connect.confluent.svc.cluster.local:8083
+    authentication:
+      type: mtls
+    tls:
+      secretRef: connector-tls
+  configs:
+    kafka.topic: "vehicle-info"
+    quickstart: "fleet_mgmt_sensors"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schemas.enable: "true"
+    max.interval: "1000"
+    iterations: "100000"
+    value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
+    value.converter.enhanced.avro.schema.support: "true"
+    value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
+    value.converter.schema.registry.ssl.truststore.password: confluent
+    value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
+    value.converter.schema.registry.ssl.keystore.password: confluent
+    value.converter.schema.registry.ssl.key.password: confluent
