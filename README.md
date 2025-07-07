@@ -201,7 +201,8 @@ At this point, the environment is ready and we can start deploying Flink Environ
 
 ## Option 1: Deploy a FilnkEnvironment and a FlinkApplication declaratively
 
-[WORK IN PROGRESS: this section will be completed soon]
+### [WORK IN PROGRESS: this section will be completed soon]
+
 Create a FlinkEnvironment, called "flink-env1":
 
 ```shell
