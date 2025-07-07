@@ -149,7 +149,16 @@ helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-fo
     --set encryption.key.kubernetesSecretName=cmf-encryption-key \
     --set encryption.key.kubernetesSecretProperty=encryption-key \
     --namespace confluent
+```
 
+Wait until the CMF operator pod is Running and ready:
+
+```shell
+watch kubectl -n confluent get pods
+```
+
+And then, forward the port:
+```shell
 kubectl port-forward service/cmf-service 8080:80 -n confluent > /dev/null 2>&1 &
 ```
 
