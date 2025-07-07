@@ -8,7 +8,7 @@
   - [Install CP Flink](#install-cp-flink)
   - [Feed test data](#feed-test-data)
   - [Process the data with Flink](#process-the-data-with-flink)
-  - [Option 1: Deploy a FilnkEnvironment and a FlinkApplication declaratively](#option-1-deploy-a-filnkenvironment-and-a-flinkapplication-declaratively)
+  - [Option 1: Deploy a FlinkEnvironment and a FlinkApplication declaratively](#option-1-deploy-a-flinkenvironment-and-a-flinkapplication-declaratively)
   - [Cleanup](#cleanup)
 
 ## Disclaimer
@@ -199,9 +199,9 @@ At this point, the environment is ready and we can start deploying Flink Environ
 - Using the Flink menu in the new Control Center
 - Declaratively, by leveraging yaml files
 
-## Option 1: Deploy a FilnkEnvironment and a FlinkApplication declaratively
+## Option 1: Deploy a FlinkEnvironment and a FlinkApplication declaratively
 
-### [WORK IN PROGRESS: this section will be completed soon]
+### [WORK IN PROGRESS: this section will be completed soon] ###
 
 Create a FlinkEnvironment, called "flink-env1":
 
