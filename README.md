@@ -145,6 +145,7 @@ openssl rand -out ./certs/cmf.key 32
 kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent
 
 helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-for-apache-flink \
+    --set cmf.logging.level.root=debug \
     --set cmf.sql.production=true \
     --set encryption.key.kubernetesSecretName=cmf-encryption-key \
     --set encryption.key.kubernetesSecretProperty=encryption-key \
@@ -201,35 +202,51 @@ At this point, the environment is ready and we can start deploying Flink Environ
 
 ## Option 1: Deploy a FlinkEnvironment and a FlinkApplication declaratively
 
-### [WORK IN PROGRESS: this section will be completed soon] ###
+We will be leveraging the standard `flink-sql-runner-example` (https://github.com/apache/flink-kubernetes-operator/tree/main/examples/flink-sql-runner-example).
 
-Create a FlinkEnvironment, called "flink-env1":
-
-```shell
-kubectl apply -f flink/flinkenvironment.yaml
-```
-
-And check the environment has been correctly created running:
+Compile, build the docker image and load in kind (it may take a bit to load cause the flink image is not so small)::
 
 ```shell
-kubectl get flinkenvironment flink-env1 -n confluent -oyaml
+cd flink-sql/flink-sql-runner-example
+mvn clean verify
+DOCKER_BUILDKIT=1 docker build . -t flink-sql-runner-example:latest
+kind load docker-image flink-sql-runner-example:latest
+cd ../..
 ```
 
-Now create a FlinkApplication, called "flink-app1":
+And now create our CP Flink environment:
 
 ```shell
-kubectl apply -f flink/flinkapplication.yaml
+kubectl apply -f flink/flink-environment.yaml
 ```
 
-And also check it has been correctly created with this command:
-
-```shell
-kubectl get flinkapplication flink-app1 -n confluent -oyaml
-```
+And after our application:
 
 ```shell
-kubectl port-forward service/flink-app1-rest 8081:8081 -n confluent > /dev/null 2>&1 &
+kubectl apply -f flink/flink-application.yaml
 ```
+
+Check pods are ready (1 job manager and 3 task managers):
+
+```shell
+watch kubectl get pods
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Cleanup
 

@@ -19,6 +19,14 @@ spec:
   tls:
     secretRef: kraftcontroller-tls
   replicas: 1
+  podTemplate:
+    resources:
+      limits:
+        memory: 768Mi
+        cpu: 200m
+      requests:
+        memory: 512Mi
+        cpu: 100m
   dependencies:
     metricsClient:
       url: https://controlcenter-ng.confluent.svc.cluster.local:9090
@@ -51,7 +59,15 @@ metadata:
   name: kafka
   namespace: confluent
 spec:
-  replicas: 3
+  replicas: 1
+  podTemplate:
+    resources:
+      limits:
+        memory: 2048Mi
+        cpu: 500m
+      requests:
+        memory: 1536Mi
+        cpu: 200m
   image:
     application: confluentinc/cp-server:8.0.0
     init: confluentinc/confluent-init-container:3.0.0
@@ -114,6 +130,14 @@ metadata:
   namespace: confluent
 spec:
   replicas: 1
+  podTemplate:
+    resources:
+      limits:
+        memory: 1024Mi
+        cpu: 200m
+      requests:
+        memory: 512Mi
+        cpu: 100m
   image:
     application: confluentinc/cp-schema-registry:8.0.0
     init: confluentinc/confluent-init-container:3.0.0
@@ -139,6 +163,14 @@ metadata:
   namespace: confluent
 spec:
   replicas: 1
+  podTemplate:
+    resources:
+      limits:
+        memory: 2560Mi
+        cpu: 500m
+      requests:
+        memory: 1792Mi
+        cpu: 200m
   image:
     application: confluentinc/cp-server-connect:8.0.0
     init: confluentinc/confluent-init-container:3.0.0
@@ -187,6 +219,13 @@ spec:
   authentication:
     type: mtls
   podTemplate:
+    resources:
+      limits:
+        memory: 256Mi
+        cpu: 200m
+      requests:
+        memory: 256Mi
+        cpu: 100m
     podSecurityContext:
       fsGroup: 1000
       runAsUser: 1000
@@ -212,6 +251,14 @@ metadata:
   namespace: confluent
 spec:
   replicas: 1
+  podTemplate:
+    resources:
+      limits:
+        memory: 2048Mi
+        cpu: 500m
+      requests:
+        memory: 1024Mi
+        cpu: 200m
   image:
     application: confluentinc/cp-enterprise-control-center-next-gen:2.2.0
     init: confluentinc/confluent-init-container:3.0.0

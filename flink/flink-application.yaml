@@ -1,0 +1,37 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: FlinkApplication
+metadata:
+  name: flink-app1
+  namespace: confluent
+spec:
+  flinkEnvironment: flink-env1
+  image: flink-sql-runner-example
+  flinkVersion: v1_19
+  flinkConfiguration:
+    "taskmanager.numberOfTaskSlots": "1"
+    "metrics.reporter.prom.factory.class": "org.apache.flink.metrics.prometheus.PrometheusReporterFactory"
+    "metrics.reporter.prom.port": "9249-9250"
+    "rest.profiling.enabled": "true"
+    "pekko.ask.timeout": 600s
+    "pekko.tcp.timeout": 600s
+    "heartbeat.timeout": "500000"
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: 2560m
+      cpu: 1
+  taskManager:
+    resource:
+      memory: 2560m
+      cpu: 1
+    replicas: 2
+  job:
+    jarURI: local:///opt/flink/usrlib/sql-runner.jar
+    args:
+      - "/opt/flink/usrlib/sql-scripts/kafka.sql"
+    state: running
+    parallelism: 2
+    upgradeMode: stateless
+  cmfRestClassRef:
+    name: cmfrestclass
+    namespace: confluent
