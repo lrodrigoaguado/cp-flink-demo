@@ -68,18 +68,6 @@ Check pod is ready:
 watch kubectl get pods
 ```
 
-The different components inthe demo will use mTLS, so we have to create certificates and Kubernetes secrets with them. Generate the certificates for all the components in the demo:
-
-```shell
-./generate_certificates.sh
-```
-
-And now create the corresponding Kubernetes secrets with those certificates:
-
-```shell
-./create_secrets.sh
-````
-
 Everything is now ready to spin up the CP components. The environment will have:
 
 - 1 kRaft controller v8.0.0
@@ -90,7 +78,7 @@ Everything is now ready to spin up the CP components. The environment will have:
 - 1 instance of the new Control Center v2.2.0
 
 ```shell
-kubectl apply -f cp/infra.yaml
+kubectl apply -f cp/infra-ins.yaml
 ```
 
 It will take a while to start all the pieces, you can check the process with the following command:
@@ -105,13 +93,7 @@ Once all the pods are up and running, you can create a port-forward to be able t
 kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 &
 ```
 
-As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
-
-127.0.0.1	    controlcenter-ng.confluent.svc.cluster.local
-
-in you "/etc/hosts" file.
-
-Once all the pods are up and running, and you have forwarded the port, you can access the Control Center here: https://controlcenter-ng.confluent.svc.cluster.local:9021/
+Once all the pods are up and running, and you have forwarded the port, you can access the Control Center here: http://localhost:9021/
 
 At this point you have a working Kafka environment, but Flink is still not vailable (you will see error messages referring to this in the Control Center).
 
@@ -141,14 +123,9 @@ helm upgrade --install cp-flink-kubernetes-operator --version "~1.120.0" conflue
 With the Operator deployed, now we can deploy Confluent Manager for Apache Flink.It will also have mTLS configured in the file mtls-cmf.yaml, and encryption keys defined, as needed for production use. In case cmf.sql.production=false is defined, no encryption keys are required.
 
 ```shell
-openssl rand -out ./certs/cmf.key 32
-kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent
-
-helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-for-apache-flink \
+helm upgrade --install -f cp/cmf.yaml cmf confluentinc/confluent-manager-for-apache-flink \
     --set cmf.logging.level.root=debug \
-    --set cmf.sql.production=true \
-    --set encryption.key.kubernetesSecretName=cmf-encryption-key \
-    --set encryption.key.kubernetesSecretProperty=encryption-key \
+    --set cmf.sql.production=false \
     --namespace confluent
 ```
 
@@ -188,7 +165,7 @@ kubectl apply -f data/topics.yaml
 And now, instantiate the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will resemble fleet data of a transports company. Run:
 
 ```shell
-kubectl apply -f data/data_source.yaml
+kubectl apply -f data/data_source_ins.yaml
 ```
 
 You should be able to see the data flowing into the created topics.
