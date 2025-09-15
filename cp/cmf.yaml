@@ -1,0 +1,3 @@
+cmf:
+  k8s:
+    enabled: true
