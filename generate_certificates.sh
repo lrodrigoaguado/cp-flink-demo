@@ -42,7 +42,7 @@ keytool -noprompt -importcert \
 
 # --- 2. Component Certificate Generation ---
 # Loop through each component to generate its keystore and truststore
-for i in kraftcontroller kafka connect schemaregistry cmf krp
+for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1
 do
   echo ""
   echo "------------------------------- $i -------------------------------"
@@ -53,7 +53,7 @@ do
   keytool -genkey -noprompt \
   	  -alias $i \
   	  -dname "CN=$i,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US" \
-      -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service,DNS:$i.mydomain.example \
+          -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
   	  -keystore $i/$i.keystore.jks \
   	  -keyalg RSA \
   	  -storepass confluent \
@@ -68,7 +68,7 @@ do
           -storepass confluent \
           -keypass confluent \
           -storetype pkcs12 \
-          -ext SAN=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service,DNS:$i.mydomain.example \
+          -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
           -file $i/$i.csr
 
   # Sign the host certificate with the certificate authority (CA)
@@ -135,7 +135,7 @@ do
   openssl req -new \
           -key $i/key.pem \
           -subj "/CN=$i,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US" \
-          -addext "subjectAltName=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i.mydomain.example" \
+          -addext "subjectAltName=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local" \
           -out $i/$i.csr
 
   # Sign the CSR with our CA
@@ -166,10 +166,12 @@ do
   echo "✅ PEM certificates generated for $i in directory: $i/"
 done
 
-for i in kraftcontroller kafka connect schemaregistry cmf prometheus-client alertmanager-client prometheus alertmanager controlcenter-ng cmfrestclass krp connector
+for i in kraftcontroller kafka connect schemaregistry cmf prometheus-client alertmanager-client prometheus alertmanager controlcenter-ng cmfrestclass krp connector flink-app1
 do
   cp global.truststore.jks ./$i/$i.truststore.jks
 done
+
+cp -r flink-app1 ../flink-sql/flink-sql-runner-example/flink-app1
 
 rm 1*.pem
 

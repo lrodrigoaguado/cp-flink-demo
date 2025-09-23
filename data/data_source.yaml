@@ -18,12 +18,152 @@ spec:
       secretRef: connector-tls
   configs:
     kafka.topic: "vehicle-description"
-    quickstart: "fleet_mgmt_description"
+    #quickstart: "fleet_mgmt_description"
+    schema.string: |
+      {
+      "namespace": "fleet_mgmt",
+      "name": "fleet_mgmt_description",
+      "type": "record",
+      "fields": [
+          {
+              "name": "vehicle_id",
+              "type": {
+                  "type": "int",
+                  "arg.properties": {
+                      "range": {
+                          "min": 0,
+                          "max": 150
+                      }
+                  }
+              }
+          },
+          {
+              "name": "driver_name",
+              "type": {
+                  "type": "string",
+                  "arg.properties": {
+                      "options": [
+                          "Frieda Baldi",
+                          "Cherrita Gallaccio",
+                          "Matt Cleugh",
+                          "Dulciana Murfill",
+                          "Germayne Streetley",
+                          "Brenna Woolfall",
+                          "Gerhardt Tenbrug",
+                          "Hayley Tuma",
+                          "Winny Cadigan",
+                          "Bonnibelle Macek",
+                          "Lionel Byneth",
+                          "Trev Roper",
+                          "Lena MacFadzean",
+                          "Benton Allcorn",
+                          "Avis Moyler",
+                          "Marchall Rochewell",
+                          "Adele Bohl",
+                          "Barnett Mcall",
+                          "Frieda Pirrone",
+                          "Pattin Eringey",
+                          "Kalila Fewings",
+                          "Giacobo Beuscher",
+                          "Rozalin Hair",
+                          "Egon Beagan",
+                          "Owen Strotton",
+                          "Fernando Rosensaft",
+                          "Carleton Gwyther",
+                          "Kata Coll",
+                          "Rossie Hobben",
+                          "Stephanie Gookey",
+                          "Robyn Milazzo",
+                          "Tilda OLunney",
+                          "Nolan Kidney",
+                          "Jori Ottiwill",
+                          "Benito Graveson",
+                          "Zechariah Wrate",
+                          "Chelsae Napton",
+                          "Jeremy Heffernon",
+                          "Derk McAviy",
+                          "Constantin Mears",
+                          "Fitz Ballin",
+                          "Essy Bettles",
+                          "Gene Klemt",
+                          "Nikolai Arnopp",
+                          "Gustave Westhofer",
+                          "Simona Mayhow",
+                          "Cort Bainbridge",
+                          "Sibyl Vockins",
+                          "Andriette Gaze",
+                          "Shaughn De Simoni",
+                          "Nathaniel Hallowell",
+                          "Charley Dudill",
+                          "Cirstoforo Joblin",
+                          "Hyacinthia Kinastan",
+                          "Dur Lasselle",
+                          "Gay Chadburn",
+                          "Livvie Hawyes",
+                          "Aldrich MacVay",
+                          "Riva Rossant",
+                          "Johanna Reichartz",
+                          "Trent Gantlett",
+                          "Aryn Haskell",
+                          "Byrann Barock",
+                          "Gerda Cleugher",
+                          "Sonnie Guildford",
+                          "Vergil Borge",
+                          "Lurline Rocco",
+                          "Geoff Eddy",
+                          "Zea Leighton",
+                          "Leif Baden",
+                          "Quint Bidgod",
+                          "Talbot Cashell",
+                          "Sheridan Foulsham",
+                          "Camile Shrimplin",
+                          "Marcel Nayshe",
+                          "Lea Murrish",
+                          "Lucais Midson",
+                          "Zeb Rylatt",
+                          "Nertie Zuker",
+                          "Babara Henderson",
+                          "Electra Ridgley",
+                          "Jere Standingford",
+                          "Cyril Yellowlea",
+                          "Isadora Peegrem",
+                          "Caria Smewings",
+                          "Karena Kauffman",
+                          "Haywood Snowball",
+                          "Winslow Starcks",
+                          "Alis Ponton",
+                          "Marietta Lezemere",
+                          "Emilee Broadbridge",
+                          "Faye Beaument",
+                          "Shannah Beatson",
+                          "West Doy",
+                          "Chryste Wren",
+                          "Trumann Labba",
+                          "Anatollo Beckwith",
+                          "Konstanze Dunsford",
+                          "Raychel Roset",
+                          "Heindrick Ravenscroft"
+                      ]
+                  }
+              }
+          },
+          {
+              "name": "license_plate",
+              "type": {
+                  "type": "string",
+                  "arg.properties": {
+                      "regex": "[A-Z]{2}\\d{6}[A-Z]"
+                  }
+              }
+          }
+        ]
+      }
+    schema.keyfield: "vehicle_id"
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
     max.interval: "1000"
-    iterations: "100000"
+    iterations: "1000"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
@@ -51,12 +191,187 @@ spec:
       secretRef: connector-tls
   configs:
     kafka.topic: "vehicle-location"
-    quickstart: "fleet_mgmt_location"
+    #quickstart: "fleet_mgmt_location"
+    schema.string: |
+      {
+          "namespace": "fleet_mgmt",
+          "name": "fleet_mgmt_location",
+          "type": "record",
+          "fields": [
+              {
+                  "name": "vehicle_id",
+                  "type": {
+                      "type": "int",
+                      "arg.properties": {
+                          "range": {
+                              "min": 0,
+                              "max": 150
+                          }
+                      }
+                  }
+              },
+              {
+                  "name": "location",
+                  "type": {
+                      "type": "record",
+                      "name": "location",
+                      "fields": [
+                          {
+                              "name": "latitude",
+                              "type": "double"
+                          },
+                          {
+                              "name": "longitude",
+                              "type": "double"
+                          }
+                      ]
+                  },
+                  "arg.properties": {
+                      "options": [
+                          {
+                              "latitude": 37.416834,
+                              "longitude": -121.975002
+                          },
+                          {
+                              "latitude": 37.664725,
+                              "longitude": -121.79737
+                          },
+                          {
+                              "latitude": 38.124221,
+                              "longitude": -121.182135
+                          },
+                          {
+                              "latitude": 38.623772,
+                              "longitude": -120.176886
+                          },
+                          {
+                              "latitude": 39.544752,
+                              "longitude": -119.589118
+                          },
+                          {
+                              "latitude": 37.725577,
+                              "longitude": -121.709479
+                          },
+                          {
+                              "latitude": 38.658096,
+                              "longitude": -120.138434
+                          },
+                          {
+                              "latitude": 39.752002,
+                              "longitude": -119.050787
+                          },
+                          {
+                              "latitude": 39.680169,
+                              "longitude": -119.111212
+                          },
+                          {
+                              "latitude": 40.445308,
+                              "longitude": -118.30921
+                          },
+                          {
+                              "latitude": 40.122644,
+                              "longitude": -118.517951
+                          },
+                          {
+                              "latitude": 40.907734,
+                              "longitude": -117.831305
+                          },
+                          {
+                              "latitude": 39.718207,
+                              "longitude": -119.105719
+                          },
+                          {
+                              "latitude": 40.853569,
+                              "longitude": -117.226383
+                          },
+                          {
+                              "latitude": 40.683171,
+                              "longitude": -116.622809
+                          },
+                          {
+                              "latitude": 40.82604,
+                              "longitude": -117.169294
+                          },
+                          {
+                              "latitude": 37.699504,
+                              "longitude": -121.731452
+                          },
+                          {
+                              "latitude": 39.912298,
+                              "longitude": -118.825568
+                          },
+                          {
+                              "latitude": 39.895442,
+                              "longitude": -118.880499
+                          },
+                          {
+                              "latitude": 39.827978,
+                              "longitude": -118.979376
+                          },
+                          {
+                              "latitude": 38.167421,
+                              "longitude": -121.116217
+                          },
+                          {
+                              "latitude": 40.628996,
+                              "longitude": -116.436041
+                          },
+                          {
+                              "latitude": 38.537888,
+                              "longitude": -120.413092
+                          },
+                          {
+                              "latitude": 39.756225,
+                              "longitude": -119.056281
+                          },
+                          {
+                              "latitude": 39.92915,
+                              "longitude": -118.748663
+                          },
+                          {
+                              "latitude": 40.924338,
+                              "longitude": -117.847785
+                          },
+                          {
+                              "latitude": 40.828808,
+                              "longitude": -117.166632
+                          },
+                          {
+                              "latitude": 38.499207,
+                              "longitude": -120.49549
+                          },
+                          {
+                              "latitude": 39.760448,
+                              "longitude": -119.061774
+                          },
+                          {
+                              "latitude": 37.391868,
+                              "longitude": -122.071206
+                          }
+                      ]
+                  }
+              },
+              {
+                  "name": "ts",
+                  "type": {
+                      "type": "long",
+                      "logicalType": "timestamp-millis",
+                      "arg.properties": {
+                          "iteration": {
+                              "start": 1609459200000,
+                              "step": 100000
+                          }
+                      }
+                  }
+              }
+          ]
+      }
+    schema.keyfield: "vehicle_id"
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
     max.interval: "1000"
-    iterations: "100000"
+    iterations: "1000"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
@@ -84,12 +399,57 @@ spec:
       secretRef: connector-tls
   configs:
     kafka.topic: "vehicle-info"
-    quickstart: "fleet_mgmt_sensors"
+    #quickstart: "fleet_mgmt_sensors"
+    schema.string: |
+      {
+      "namespace": "fleet_mgmt",
+      "name": "fleet_mgmt_sensors",
+      "type": "record",
+      "fields": [
+          {
+              "name": "vehicle_id",
+              "type": {
+                  "type": "int",
+                  "arg.properties": {
+                      "range": {
+                          "min": 0,
+                          "max": 150
+                      }
+                  }
+              }
+          },
+          {
+              "name": "engine_temperature",
+              "type": {
+                  "type": "int",
+                  "arg.properties": {
+                      "range": {
+                          "min": 80,
+                          "max": 250
+                      }
+                  }
+              }
+          },
+          {
+              "name": "average_rpm",
+              "type": {
+                  "type": "int",
+                  "arg.properties": {
+                      "range": {
+                          "min": 1500,
+                          "max": 9000
+                      }
+                  }
+              }
+          }
+        ]
+      }
+    schema.keyfield: "vehicle_id"
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
     max.interval: "1000"
-    iterations: "100000"
+    iterations: "1000"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks

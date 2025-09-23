@@ -59,14 +59,14 @@ metadata:
   name: kafka
   namespace: confluent
 spec:
-  replicas: 1
+  replicas: 3
   podTemplate:
     resources:
       limits:
-        memory: 2048Mi
+        memory: 1024Mi
         cpu: 500m
       requests:
-        memory: 1536Mi
+        memory: 512Mi
         cpu: 200m
   image:
     application: confluentinc/cp-server:8.0.0
@@ -133,10 +133,10 @@ spec:
   podTemplate:
     resources:
       limits:
-        memory: 1024Mi
+        memory: 512Mi
         cpu: 200m
       requests:
-        memory: 512Mi
+        memory: 256Mi
         cpu: 100m
   image:
     application: confluentinc/cp-schema-registry:8.0.0
@@ -166,11 +166,16 @@ spec:
   podTemplate:
     resources:
       limits:
-        memory: 2560Mi
-        cpu: 500m
+        memory: 2048Mi
+        cpu: 1500m
       requests:
-        memory: 1792Mi
-        cpu: 200m
+        memory: 1536Mi
+        cpu: 500m
+    probe:
+      liveness:
+        initialDelaySeconds: 300
+      readiness:
+        initialDelaySeconds: 240
   image:
     application: confluentinc/cp-server-connect:8.0.0
     init: confluentinc/confluent-init-container:3.0.0
@@ -182,7 +187,6 @@ spec:
     type: onDemand
     onDemand:
       plugins:
-        locationType: confluentHub
         confluentHub:
           - name: kafka-connect-datagen
             owner: confluentinc
@@ -202,7 +206,7 @@ spec:
       url: https://schemaregistry.confluent.svc.cluster.local:8081
   configOverrides:
     server:
-      - sni.host.check.enabled=false
+      - "sni.host.check.enabled=false"
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaRestProxy
@@ -221,7 +225,7 @@ spec:
   podTemplate:
     resources:
       limits:
-        memory: 256Mi
+        memory: 512Mi
         cpu: 200m
       requests:
         memory: 256Mi

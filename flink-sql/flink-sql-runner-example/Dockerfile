@@ -21,3 +21,4 @@ FROM confluentinc/cp-flink:1.19.1-cp1
 RUN mkdir /opt/flink/usrlib
 ADD target/flink-sql-runner-example-*.jar /opt/flink/usrlib/sql-runner.jar
 ADD sql-scripts /opt/flink/usrlib/sql-scripts
+ADD flink-app1 /mnt/secrets/flink-app1-tls
