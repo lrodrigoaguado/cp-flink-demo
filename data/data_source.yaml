@@ -21,149 +21,164 @@ spec:
     #quickstart: "fleet_mgmt_description"
     schema.string: |
       {
-      "namespace": "fleet_mgmt",
-      "name": "fleet_mgmt_description",
-      "type": "record",
-      "fields": [
-          {
-              "name": "vehicle_id",
-              "type": {
-                  "type": "int",
-                  "arg.properties": {
-                      "range": {
-                          "min": 0,
-                          "max": 150
+          "namespace": "fleet_mgmt",
+          "name": "fleet_mgmt_description",
+          "type": "record",
+          "fields": [
+              {
+                  "name": "vehicle_id",
+                  "type": {
+                      "type": "int",
+                      "arg.properties": {
+                          "iteration": {
+                              "start": 0,
+                              "step": 1
+                          }
+                      }
+                  }
+              },
+              {
+                  "name": "vehicle_brand",
+                  "type": {
+                      "type": "string",
+                      "arg.properties": {
+                          "options": [
+                              "Renault",
+                              "Mercedes-Benz",
+                              "Volvo",
+                              "MAN",
+                              "Scania"
+                          ]
+                      }
+                  }
+              },
+              {
+                  "name": "driver_name",
+                  "type": {
+                      "type": "string",
+                      "arg.properties": {
+                          "options": [
+                              "Frieda Baldi",
+                              "Cherrita Gallaccio",
+                              "Matt Cleugh",
+                              "Dulciana Murfill",
+                              "Germayne Streetley",
+                              "Brenna Woolfall",
+                              "Gerhardt Tenbrug",
+                              "Hayley Tuma",
+                              "Winny Cadigan",
+                              "Bonnibelle Macek",
+                              "Lionel Byneth",
+                              "Trev Roper",
+                              "Lena MacFadzean",
+                              "Benton Allcorn",
+                              "Avis Moyler",
+                              "Marchall Rochewell",
+                              "Adele Bohl",
+                              "Barnett Mcall",
+                              "Frieda Pirrone",
+                              "Pattin Eringey",
+                              "Kalila Fewings",
+                              "Giacobo Beuscher",
+                              "Rozalin Hair",
+                              "Egon Beagan",
+                              "Owen Strotton",
+                              "Fernando Rosensaft",
+                              "Carleton Gwyther",
+                              "Kata Coll",
+                              "Rossie Hobben",
+                              "Stephanie Gookey",
+                              "Robyn Milazzo",
+                              "Tilda OLunney",
+                              "Nolan Kidney",
+                              "Jori Ottiwill",
+                              "Benito Graveson",
+                              "Zechariah Wrate",
+                              "Chelsae Napton",
+                              "Jeremy Heffernon",
+                              "Derk McAviy",
+                              "Constantin Mears",
+                              "Fitz Ballin",
+                              "Essy Bettles",
+                              "Gene Klemt",
+                              "Nikolai Arnopp",
+                              "Gustave Westhofer",
+                              "Simona Mayhow",
+                              "Cort Bainbridge",
+                              "Sibyl Vockins",
+                              "Andriette Gaze",
+                              "Shaughn De Simoni",
+                              "Nathaniel Hallowell",
+                              "Charley Dudill",
+                              "Cirstoforo Joblin",
+                              "Hyacinthia Kinastan",
+                              "Dur Lasselle",
+                              "Gay Chadburn",
+                              "Livvie Hawyes",
+                              "Aldrich MacVay",
+                              "Riva Rossant",
+                              "Johanna Reichartz",
+                              "Trent Gantlett",
+                              "Aryn Haskell",
+                              "Byrann Barock",
+                              "Gerda Cleugher",
+                              "Sonnie Guildford",
+                              "Vergil Borge",
+                              "Lurline Rocco",
+                              "Geoff Eddy",
+                              "Zea Leighton",
+                              "Leif Baden",
+                              "Quint Bidgod",
+                              "Talbot Cashell",
+                              "Sheridan Foulsham",
+                              "Camile Shrimplin",
+                              "Marcel Nayshe",
+                              "Lea Murrish",
+                              "Lucais Midson",
+                              "Zeb Rylatt",
+                              "Nertie Zuker",
+                              "Babara Henderson",
+                              "Electra Ridgley",
+                              "Jere Standingford",
+                              "Cyril Yellowlea",
+                              "Isadora Peegrem",
+                              "Caria Smewings",
+                              "Karena Kauffman",
+                              "Haywood Snowball",
+                              "Winslow Starcks",
+                              "Alis Ponton",
+                              "Marietta Lezemere",
+                              "Emilee Broadbridge",
+                              "Faye Beaument",
+                              "Shannah Beatson",
+                              "West Doy",
+                              "Chryste Wren",
+                              "Trumann Labba",
+                              "Anatollo Beckwith",
+                              "Konstanze Dunsford",
+                              "Raychel Roset",
+                              "Heindrick Ravenscroft"
+                          ]
+                      }
+                  }
+              },
+              {
+                  "name": "license_plate",
+                  "type": {
+                      "type": "string",
+                      "arg.properties": {
+                          "regex": "[A-Z]{2}\\d{6}[A-Z]"
                       }
                   }
               }
-          },
-          {
-              "name": "driver_name",
-              "type": {
-                  "type": "string",
-                  "arg.properties": {
-                      "options": [
-                          "Frieda Baldi",
-                          "Cherrita Gallaccio",
-                          "Matt Cleugh",
-                          "Dulciana Murfill",
-                          "Germayne Streetley",
-                          "Brenna Woolfall",
-                          "Gerhardt Tenbrug",
-                          "Hayley Tuma",
-                          "Winny Cadigan",
-                          "Bonnibelle Macek",
-                          "Lionel Byneth",
-                          "Trev Roper",
-                          "Lena MacFadzean",
-                          "Benton Allcorn",
-                          "Avis Moyler",
-                          "Marchall Rochewell",
-                          "Adele Bohl",
-                          "Barnett Mcall",
-                          "Frieda Pirrone",
-                          "Pattin Eringey",
-                          "Kalila Fewings",
-                          "Giacobo Beuscher",
-                          "Rozalin Hair",
-                          "Egon Beagan",
-                          "Owen Strotton",
-                          "Fernando Rosensaft",
-                          "Carleton Gwyther",
-                          "Kata Coll",
-                          "Rossie Hobben",
-                          "Stephanie Gookey",
-                          "Robyn Milazzo",
-                          "Tilda OLunney",
-                          "Nolan Kidney",
-                          "Jori Ottiwill",
-                          "Benito Graveson",
-                          "Zechariah Wrate",
-                          "Chelsae Napton",
-                          "Jeremy Heffernon",
-                          "Derk McAviy",
-                          "Constantin Mears",
-                          "Fitz Ballin",
-                          "Essy Bettles",
-                          "Gene Klemt",
-                          "Nikolai Arnopp",
-                          "Gustave Westhofer",
-                          "Simona Mayhow",
-                          "Cort Bainbridge",
-                          "Sibyl Vockins",
-                          "Andriette Gaze",
-                          "Shaughn De Simoni",
-                          "Nathaniel Hallowell",
-                          "Charley Dudill",
-                          "Cirstoforo Joblin",
-                          "Hyacinthia Kinastan",
-                          "Dur Lasselle",
-                          "Gay Chadburn",
-                          "Livvie Hawyes",
-                          "Aldrich MacVay",
-                          "Riva Rossant",
-                          "Johanna Reichartz",
-                          "Trent Gantlett",
-                          "Aryn Haskell",
-                          "Byrann Barock",
-                          "Gerda Cleugher",
-                          "Sonnie Guildford",
-                          "Vergil Borge",
-                          "Lurline Rocco",
-                          "Geoff Eddy",
-                          "Zea Leighton",
-                          "Leif Baden",
-                          "Quint Bidgod",
-                          "Talbot Cashell",
-                          "Sheridan Foulsham",
-                          "Camile Shrimplin",
-                          "Marcel Nayshe",
-                          "Lea Murrish",
-                          "Lucais Midson",
-                          "Zeb Rylatt",
-                          "Nertie Zuker",
-                          "Babara Henderson",
-                          "Electra Ridgley",
-                          "Jere Standingford",
-                          "Cyril Yellowlea",
-                          "Isadora Peegrem",
-                          "Caria Smewings",
-                          "Karena Kauffman",
-                          "Haywood Snowball",
-                          "Winslow Starcks",
-                          "Alis Ponton",
-                          "Marietta Lezemere",
-                          "Emilee Broadbridge",
-                          "Faye Beaument",
-                          "Shannah Beatson",
-                          "West Doy",
-                          "Chryste Wren",
-                          "Trumann Labba",
-                          "Anatollo Beckwith",
-                          "Konstanze Dunsford",
-                          "Raychel Roset",
-                          "Heindrick Ravenscroft"
-                      ]
-                  }
-              }
-          },
-          {
-              "name": "license_plate",
-              "type": {
-                  "type": "string",
-                  "arg.properties": {
-                      "regex": "[A-Z]{2}\\d{6}[A-Z]"
-                  }
-              }
-          }
-        ]
+          ]
       }
     schema.keyfield: "vehicle_id"
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
-    max.interval: "1000"
-    iterations: "1000"
+    max.interval: "10"
+    iterations: "151"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
@@ -370,8 +385,8 @@ spec:
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
-    max.interval: "1000"
-    iterations: "1000"
+    max.interval: "50"
+    iterations: "300000"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
@@ -441,6 +456,19 @@ spec:
                       }
                   }
               }
+          },
+          {
+              "name": "ts",
+              "type": {
+                  "type": "long",
+                  "logicalType": "timestamp-millis",
+                  "arg.properties": {
+                      "iteration": {
+                          "start": 1609459200000,
+                          "step": 100000
+                      }
+                  }
+              }
           }
         ]
       }
@@ -448,8 +476,8 @@ spec:
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
-    max.interval: "1000"
-    iterations: "1000"
+    max.interval: "100"
+    iterations: "300000"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks

@@ -5,10 +5,9 @@
 - [Setup](#setup)
   - [Deploy Kubernetes](#deploy-kubernetes)
   - [Start Confluent Platform](#start-confluent-platform)
-  - [Install CP Flink](#install-cp-flink)
   - [Feed test data](#feed-test-data)
+  - [Install CP Flink](#install-cp-flink)
   - [Process the data with Flink](#process-the-data-with-flink)
-  - [Option 1: Deploy a FlinkEnvironment and a FlinkApplication declaratively](#option-1-deploy-a-flinkenvironment-and-a-flinkapplication-declaratively)
   - [Cleanup](#cleanup)
 
 ## Disclaimer
@@ -115,6 +114,29 @@ Once all the pods are up and running, and you have forwarded the port, you can a
 
 At this point you have a working Kafka environment, but Flink is still not vailable (you will see error messages referring to this in the Control Center).
 
+## Feed test data
+
+First of all, create the necessary topics, with:
+
+```shell
+kubectl apply -f data/topics.yaml
+```
+
+For the test, we will use the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will resemble fleet data of a transports company. Run:
+
+```shell
+kubectl apply -f data/data_source.yaml
+```
+
+You should be able to see the data flowing into the created topics. The mock data will generate data for 150 trucks, simulating their locations and some engine temperature and RPM alerts like this:
+
+- vehicle-location: Messages will associate a vehicle_id to a latitude/longitude and a point in time.
+- vehicle-info: Messages will associate a vehicle_id to an engine temperature, average RPM and a point in time.
+- vehicle-description: Master table with all the vehicle_ids and their brand, license plate and name of the driver.
+
+The vehicle-description generates a small number of messages and it is normal that once it has generated the contents of the master table (151 messages) it will remain in Failed mode.
+
+
 ## Install CP Flink
 
 Let's complete the set up now deploying all the necessary pieces to have a Flink environment.
@@ -177,34 +199,13 @@ kubectl get cmfrestclass cmfrestclass -n confluent -oyaml
 
 It may take some seconds, but you should see one instance called "cmfrestclass" and no errors.
 
-## Feed test data
-
-First of all, create the necessary topics, with:
-
-```shell
-kubectl apply -f data/topics.yaml
-```
-
-And now, instantiate the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will resemble fleet data of a transports company. Run:
-
-```shell
-kubectl apply -f data/data_source.yaml
-```
-
-You should be able to see the data flowing into the created topics.
-
 ## Process the data with Flink
 
-At this point, the environment is ready and we can start deploying Flink Environment and applications. We can use two different methods for these:
-
-- Using the Flink menu in the new Control Center
-- Declaratively, by leveraging yaml files
-
-## Option 1: Deploy a FlinkEnvironment and a FlinkApplication declaratively
+At this point, the environment is ready and we can start deploying Flink Environment and applications. We will deploy the FlinkEnvironment and FlinkApplication declaratively, by using the corresponding Yaml files.
 
 We will be leveraging the standard `flink-sql-runner-example` (https://github.com/apache/flink-kubernetes-operator/tree/main/examples/flink-sql-runner-example).
 
-Compile, build the docker image and load in kind (it may take a bit to load cause the flink image is not so small)::
+Compile, build the docker image and load in kind (it may take a bit to load cause the flink image is not so small):
 
 ```shell
 cd flink-sql/flink-sql-runner-example
@@ -232,23 +233,19 @@ Check pods are ready (1 job manager and 3 task managers):
 watch kubectl get pods
 ```
 
+The application does several steps:
 
+- First of all, processes the vehicle-locations topic to calculate the average speed that a truck needed to move from one point to the next. As locaitons are random, the speed values may not be very realistic. These values are published into the vehicle-speed topic.
 
+- Then, a topic vehicle-alerts is filled with the vehicle_ids and point in time when a certain truck exceeded 210 degrees, 7500 rpm or 120 kmh. These thresholds have been chose randomly just for the demo.
 
+- Finally, those alerts are enriched with the brand, license plate and name of the driver coming from the vehicle-description master table and written to the vehicle-alerts-enriched topic.
 
-
-
-
-
-
-
-
-
-
-
-
+You can check the status and the metrics of the Flink Application just by clicking on the "Apache Flink Dashboard" button integrated in the FlinkApplication page of the Control Center.
 
 ## Cleanup
+
+You can clean all the environment just by running
 
 ```shell
 kind delete cluster
