@@ -23,7 +23,7 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
   - [5. Process the data with Flink](#5-process-the-data-with-flink)
     - [Build the Application Image](#build-the-application-image)
     - [Deploy the Flink Application](#deploy-the-flink-application)
-  - [Cleanup](#cleanup)
+  - [6. Cleanup](#6-cleanup)
 
 ## Disclaimer
 
@@ -321,7 +321,7 @@ watch kubectl get pods
 
 ---
 
-## Cleanup
+## 6. Cleanup
 
 To completely remove the Kubernetes cluster and all its resources, simply run:
 
