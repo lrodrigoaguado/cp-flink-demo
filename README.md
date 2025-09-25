@@ -1,7 +1,11 @@
-# CP Flink SQL
+# 🚚 Real-Time Fleet Monitoring with CP Flink and Confluent
 
-- [CP Flink SQL](#cp-flink-sql)
+This project demonstrates a complete, real-time data pipeline built on Kubernetes. It uses the **Confluent Platform** to ingest and manage data streams, and **Apache Flink** to process, analyze, and enrich that data in real-time.
+
+- [🚚 Real-Time Fleet Monitoring with CP Flink and Confluent](#-real-time-fleet-monitoring-with-cp-flink-and-confluent)
   - [Disclaimer](#disclaimer)
+  - [What You'll Build](#what-youll-build)
+  - [Architecture](#architecture)
 - [Setup](#setup)
   - [Deploy Kubernetes](#deploy-kubernetes)
   - [Start Confluent Platform](#start-confluent-platform)
@@ -12,21 +16,71 @@
 
 ## Disclaimer
 
-The code and/or instructions here available are **NOT** intended for production usage.
-It's only meant to serve as an example or reference and does not replace the need to follow actual and official documentation of referenced products.
+> The code and instructions provided here are **NOT** intended for production use. They are meant to serve as an example and do not replace the official documentation of the referenced products.
+
+## What You'll Build
+
+You will create an end-to-end streaming application that simulates a fleet management system. The pipeline will:
+
+1.  **Generate** mock vehicle data (location, engine stats, and descriptions) using Kafka Connect.
+2.  **Ingest** this data into multiple Kafka topics.
+3.  **Process** the streams with a Flink SQL application to:
+    * Calculate the real-time speed of each vehicle.
+    * Detect alert-worthy conditions (e.g., speeding, overheating).
+    * Enrich alerts with descriptive data (driver name, vehicle brand) using a stream-table join.
+4.  **Publish** the final, enriched alerts to a new Kafka topic for consumption by downstream applications (like dashboards or other services).
+
+## Architecture
+
+The entire system runs on Kubernetes and is managed by operators. The data flows from the Datagen source, through Kafka, is processed by Flink, and finally lands in the enriched topic.
+
+```mermaid
+graph TD
+    subgraph "Kubernetes Cluster"
+
+    subgraph "Data Generation (Kafka Connect)"
+        Datagen[DatagenConnector]
+    end
+
+    subgraph "Data Streaming (Kafka)"
+        T1[topic: vehicle-description]
+        T2[topic: vehicle-location]
+        T3[topic: vehicle-info]
+        T4[topic: vehicle-alerts]
+        T5[topic: vehicle-alerts-enriched]
+    end
+
+    subgraph "Stream Processing (Flink)"
+        FlinkApp[Flink SQL Application]
+    end
+
+    Datagen --> T1 & T2 & T3
+    T2 & T3 --> FlinkApp
+    FlinkApp --> T4
+    T1 & T4 --> FlinkApp
+    FlinkApp --> T5
+
+    end
+```
 
 # Setup
 
 ## Prerequisites
 
-To run the following demo, you will need an environment with a working version of kind, helm,...
+> To run this demo, you'll need a working local environment with kind, helm, kubectl, openssl, and maven.
 
 ## Deploy Kubernetes
+
+First, create a local Kubernetes cluster using `kind`.
+
 ```shell
 kind create cluster --image kindest/node:v1.31.0
 ```
 
-Optionally, if you want to access the Kubernetes dashboard, run these commands in a separate terminal:
+<details>
+<summary><b>Optional: Deploy the Kubernetes Dashboard</b></summary>
+
+If you want to use the web-based Kubernetes dashboard, run these commands in a separate terminal.
 
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml --context kind-kind
@@ -41,13 +95,7 @@ Copy the token displayed on output and use it to login at http://localhost:8001/
 
 You may need to wait a couple of seconds for dashboard to become available.
 
-In case you are logged out cause of inactivity you may see errors as:
-
-```
-E0225 13:50:19.136484   67149 proxy_server.go:147] Error while proxying request: context canceled
-```
-
-Just login again using same token as before and ignore the errors.
+</details>
 
 ## Start Confluent Platform
 
