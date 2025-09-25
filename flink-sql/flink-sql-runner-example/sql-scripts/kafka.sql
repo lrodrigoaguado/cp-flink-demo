@@ -80,36 +80,37 @@ CREATE TABLE vehicle_info (
 );
 
 -- 2. Calculate the speed of each vehicle using the difference in time and location and generate alerts for those vehicles that travel over 120 km/h
-CREATE TABLE vehicle_speed (
-  `vehicle_id` INT,
-  `latitude` DOUBLE,
-  `longitude` DOUBLE,
-  `prev_latitude` DOUBLE,
-  `prev_longitude` DOUBLE,
-  `ts` BIGINT,
-  `prev_ts` BIGINT,
-  `speed_kmh` DOUBLE,
-  PRIMARY KEY (vehicle_id) NOT ENFORCED
-) WITH (
-  'connector' = 'upsert-kafka',
-  'topic' = 'vehicle-speed',
-  'key.format' = 'json',
-  'value.format' = 'avro-confluent',
-  'properties.bootstrap.servers' = 'kafka.confluent.svc.cluster.local:9071',
-  'properties.security.protocol' = 'SSL',
-  'properties.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
-  'properties.ssl.truststore.password' = 'confluent',
-  'properties.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'properties.ssl.keystore.password' = 'confluent',
-  'properties.ssl.key.password' = 'confluent',
-  'value.avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
-  'value.avro-confluent.subject' = 'EnrichedEvents-value',
-  'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
-  'value.avro-confluent.ssl.truststore.password' = 'confluent',
-  'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'value.avro-confluent.ssl.keystore.password' = 'confluent'
-);
-INSERT INTO vehicle_speed
+-- CREATE TABLE vehicle_speed (
+--   `vehicle_id` INT,
+--   `latitude` DOUBLE,
+--   `longitude` DOUBLE,
+--   `prev_latitude` DOUBLE,
+--   `prev_longitude` DOUBLE,
+--   `ts` BIGINT,
+--   `prev_ts` BIGINT,
+--   `speed_kmh` DOUBLE,
+--   PRIMARY KEY (vehicle_id) NOT ENFORCED
+-- ) WITH (
+--   'connector' = 'upsert-kafka',
+--   'topic' = 'vehicle-speed',
+--   'key.format' = 'json',
+--   'value.format' = 'avro-confluent',
+--   'properties.bootstrap.servers' = 'kafka.confluent.svc.cluster.local:9071',
+--   'properties.security.protocol' = 'SSL',
+--   'properties.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
+--   'properties.ssl.truststore.password' = 'confluent',
+--   'properties.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
+--   'properties.ssl.keystore.password' = 'confluent',
+--   'properties.ssl.key.password' = 'confluent',
+--   'value.avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
+--   'value.avro-confluent.subject' = 'EnrichedEvents-value',
+--   'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
+--   'value.avro-confluent.ssl.truststore.password' = 'confluent',
+--   'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
+--   'value.avro-confluent.ssl.keystore.password' = 'confluent'
+-- );
+-- INSERT INTO vehicle_speed
+CREATE VIEW vehicle_speed AS
 SELECT
   vehicle_id,
   location.latitude AS latitude,
@@ -173,33 +174,6 @@ CREATE TABLE vehicle_alerts (
   'value.avro-confluent.ssl.keystore.password' = 'confluent'
 );
 
-INSERT INTO vehicle_alerts
-SELECT
-  vehicle_id,
-  'EXCESSIVE_SPEED' AS alert_type,
-  CAST(speed_kmh AS INT) as alert_value,
-  ts
-FROM vehicle_speed
-WHERE speed_kmh > 120;
-
-INSERT INTO vehicle_alerts
-SELECT
-  vehicle_id,
-  'ENGINE_OVERHEAT' AS alert_type,
-  engine_temperature as alert_value,
-  ts
-FROM vehicle_info
-WHERE engine_temperature > 210;
-
-INSERT INTO vehicle_alerts
-SELECT
-  vehicle_id,
-  'EXCESSIVE_RPM' AS alert_type,
-  average_rpm as alert_value,
-  ts
-FROM vehicle_info
-WHERE average_rpm > 7500;
-
 -- 3. Enrich alerts data with description and sensor readings
 CREATE TABLE enriched_alerts (
   `vehicle_id` INT,
@@ -232,14 +206,48 @@ CREATE TABLE enriched_alerts (
   'value.avro-confluent.ssl.keystore.password' = 'confluent'
 );
 
-INSERT INTO enriched_alerts
-SELECT
-  a.vehicle_id,
-  a.alert_type,
-  a.alert_value,
-  a.ts,
-  d.vehicle_brand,
-  d.driver_name,
-  d.license_plate
-FROM `vehicle_alerts` a
-LEFT JOIN `vehicle_description` d ON a.vehicle_id = d.vehicle_id
+
+
+EXECUTE STATEMENT SET
+BEGIN
+
+  INSERT INTO vehicle_alerts
+  SELECT
+    vehicle_id,
+    'EXCESSIVE_SPEED' AS alert_type,
+    CAST(speed_kmh AS INT) as alert_value,
+    ts
+  FROM vehicle_speed
+  WHERE speed_kmh > 120;
+
+  INSERT INTO vehicle_alerts
+  SELECT
+    vehicle_id,
+    'ENGINE_OVERHEAT' AS alert_type,
+    engine_temperature as alert_value,
+    ts
+  FROM vehicle_info
+  WHERE engine_temperature > 210;
+
+  INSERT INTO vehicle_alerts
+  SELECT
+    vehicle_id,
+    'EXCESSIVE_RPM' AS alert_type,
+    average_rpm as alert_value,
+    ts
+  FROM vehicle_info
+  WHERE average_rpm > 7500;
+
+  INSERT INTO enriched_alerts
+  SELECT
+    a.vehicle_id,
+    a.alert_type,
+    a.alert_value,
+    a.ts,
+    d.vehicle_brand,
+    d.driver_name,
+    d.license_plate
+  FROM `vehicle_alerts` a
+  LEFT JOIN `vehicle_description` d ON a.vehicle_id = d.vehicle_id;
+
+END;
