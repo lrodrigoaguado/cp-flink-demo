@@ -217,13 +217,14 @@ Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apa
 
 ### Install Prerequities
 
+Install certificate manager, a requirement for the Flink Operator:
+
 ```shell
-# Install certificate manager, a requirement for the Flink Operator:
-
 kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+````
+🔍 **Check Status:** Wait until an endpoint IP is assigned when executing the following
 
-# Wait until an endpoint IP is assigned when executing the following:
-
+```shell
 watch kubectl get endpoints -n cert-manager cert-manager-webhook
 ```
 
@@ -315,8 +316,9 @@ kubectl apply -f flink/flink-application.yaml
 ```
 
 🔍 **Check Status:** Wait for the Flink JobManager and TaskManager pods to start.
----shell
+```shell
 watch kubectl get pods
+```
 
 ✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 
