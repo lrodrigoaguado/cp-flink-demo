@@ -1,12 +1,13 @@
-# 🚚 Real-Time Fleet Monitoring with CP Flink and Confluent
+# 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink
 
 This project demonstrates a complete, real-time data pipeline built on the **Confluent Platform** to ingest and manage data streams, and **CP Flink** to process, analyze, and enrich that data in real-time.
 
-- [🚚 Real-Time Fleet Monitoring with CP Flink and Confluent](#-real-time-fleet-monitoring-with-cp-flink-and-confluent)
+- [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-80-and-cp-flink)
   - [Disclaimer](#disclaimer)
   - [What You'll Build](#what-youll-build)
   - [Architecture](#architecture)
 - [Setup](#setup)
+  - [ Prerequisites](#prerequisites)
   - [1. Deploy Kubernetes](#1-deploy-kubernetes)
   - [2. Start Confluent Platform](#2-start-confluent-platform)
     - [Deploy the Operator](#deploy-the-operator)
@@ -78,7 +79,7 @@ graph TD
 
 The following section details a step by step procedure to make the demo work locally. You can safely copy and paste the commands and it should work seamlessly.
 
-## Prerequisites
+##  Prerequisites
 
 > To run this demo, you'll need a working local environment with kind, helm, kubectl, openssl, and maven.
 
