@@ -1,17 +1,28 @@
 # 🚚 Real-Time Fleet Monitoring with CP Flink and Confluent
 
-This project demonstrates a complete, real-time data pipeline built on Kubernetes. It uses the **Confluent Platform** to ingest and manage data streams, and **Apache Flink** to process, analyze, and enrich that data in real-time.
+This project demonstrates a complete, real-time data pipeline built on the **Confluent Platform** to ingest and manage data streams, and **CP Flink** to process, analyze, and enrich that data in real-time.
 
 - [🚚 Real-Time Fleet Monitoring with CP Flink and Confluent](#-real-time-fleet-monitoring-with-cp-flink-and-confluent)
   - [Disclaimer](#disclaimer)
   - [What You'll Build](#what-youll-build)
   - [Architecture](#architecture)
 - [Setup](#setup)
-  - [Deploy Kubernetes](#deploy-kubernetes)
-  - [Start Confluent Platform](#start-confluent-platform)
-  - [Feed test data](#feed-test-data)
-  - [Install CP Flink](#install-cp-flink)
-  - [Process the data with Flink](#process-the-data-with-flink)
+  - [1. Deploy Kubernetes](#1-deploy-kubernetes)
+  - [2. Start Confluent Platform](#2-start-confluent-platform)
+    - [Deploy the Operator](#deploy-the-operator)
+    - [Configure Security (mTLS)](#configure-security-mtls)
+    - [Deploy Confluent Components](#deploy-confluent-components)
+    - [Access Control Center](#access-control-center)
+  - [3. Feed test data](#3-feed-test-data)
+    - [Create Topics](#create-topics)
+    - [Start the Datagen Connector](#start-the-datagen-connector)
+  - [4. Install CP Flink](#4-install-cp-flink)
+    - [Install Prerequities](#install-prerequities)
+    - [Install Operators](#install-operators)
+    - [Deploy CMF REST Class](#deploy-cmf-rest-class)
+  - [5. Process the data with Flink](#5-process-the-data-with-flink)
+    - [Build the Application Image](#build-the-application-image)
+    - [Deploy the Flink Application](#deploy-the-flink-application)
   - [Cleanup](#cleanup)
 
 ## Disclaimer
@@ -65,11 +76,13 @@ graph TD
 
 # Setup
 
+The following section details a step by step procedure to make the demo work locally. You can safely copy and paste the commands and it should work seamlessly.
+
 ## Prerequisites
 
 > To run this demo, you'll need a working local environment with kind, helm, kubectl, openssl, and maven.
 
-## Deploy Kubernetes
+## 1. Deploy Kubernetes
 
 First, create a local Kubernetes cluster using `kind`.
 
@@ -97,9 +110,13 @@ You may need to wait a couple of seconds for dashboard to become available.
 
 </details>
 
-## Start Confluent Platform
+## 2. Start Confluent Platform
 
-In your running kubernetes cluster, create now a namespace for the demo, called "confluent" and deploy Confluent's operator:
+Now, let's deploy the core Confluent Platform components using the official Helm chart and Confluent for Kubernetes (CFK) Operator.
+
+### Deploy the Operator
+
+First, create a `confluent` namespace and install the CFK operator.
 
 ```shell
 kubectl create namespace confluent
@@ -109,42 +126,45 @@ helm repo update
 helm upgrade --install operator confluentinc/confluent-for-kubernetes
 ```
 
-Check pod is ready:
-
+🔍 **Check Status:** Wait for the operator pod to be in a `Running` state.
 ```shell
 watch kubectl get pods
 ```
 
-The different components inthe demo will use mTLS, so we have to create certificates and Kubernetes secrets with them. Generate the certificates for all the components in the demo:
+### Configure Security (mTLS)
+The different components inthe demo will use mTLS, so we have to create certificates and Kubernetes secrets with them.
 
 ```shell
+# Generate all the necessary TLS certificates
 ./generate_certificates.sh
+
+# Create Kubernetes secrets from the generated certificates
+./create_secrets.sh
 ```
 
-And now create the corresponding Kubernetes secrets with those certificates:
+### Deploy Confluent Components
 
-```shell
-./create_secrets.sh
-````
+Apply the `infra.yaml` manifest to deploy the entire Confluent Platform. This will spin up the following components:
 
-Everything is now ready to spin up the CP components. The environment will have:
-
-- 1 kRaft controller v8.0.0
-- 3 kafka brokers v8.0.0
-- 1 Schema Registry v8.0.0
-- 1 Connect worker v8.0.0
-- 1 Rest Proxy v8.0.0
-- 1 instance of the new Control Center v2.2.0
+| Component         | Version | Replicas | Notes                                |
+| ----------------- | ------- | -------- | ------------------------------------ |
+| kRaft Controller  | 8.0.0   | 1        | Manages the Kafka cluster (no ZK)    |
+| Kafka Broker      | 8.0.0   | 3        | The core streaming platform          |
+| Schema Registry   | 8.0.0   | 1        | Manages Avro schemas                 |
+| Kafka Connect     | 8.0.0   | 1        | For data integration (our data source) |
+| REST Proxy        | 8.0.0   | 1        | HTTP access to Kafka                 |
+| Control Center    | 2.2.0   | 1        | The web-based management UI          |
 
 ```shell
 kubectl apply -f cp/infra.yaml
 ```
 
-It will take a while to start all the pieces, you can check the process with the following command:
-
+🔍 **Check Status:** This will take a few minutes. Wait until all pods are `Running` and have a `READY` status like `1/1`.
 ```shell
 watch kubectl -n confluent get pods
 ```
+
+### Access Control Center
 
 Once all the pods are up and running, you can create a port-forward to be able to access the Control Center:
 
@@ -152,63 +172,70 @@ Once all the pods are up and running, you can create a port-forward to be able t
 kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 &
 ```
 
-As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
-
-127.0.0.1	    controlcenter-ng.confluent.svc.cluster.local
-
+> **Note:** As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
+> ```
+> 127.0.0.1     controlcenter-ng.confluent.svc.cluster.local
+> ```
 in you "/etc/hosts" file.
 
 Once all the pods are up and running, and you have forwarded the port, you can access the Control Center here: https://controlcenter-ng.confluent.svc.cluster.local:9021/
 
-At this point you have a working Kafka environment, but Flink is still not vailable (you will see error messages referring to this in the Control Center).
+✅ You can now access Confluent Control Center at: **https://controlcenter-ng.confluent.svc.cluster.local:9021/**
 
-## Feed test data
+---
 
-First of all, create the necessary topics, with:
+## 3. Feed test data
+
+With the platform running, let's create our topics and start generating mock data.
+
+### Create Topics
 
 ```shell
 kubectl apply -f data/topics.yaml
 ```
 
-For the test, we will use the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will resemble fleet data of a transports company. Run:
+### Start the Datagen Connector
+
+For the demo, we will use the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will simulate a fleet of 150 trucks. Run:
 
 ```shell
 kubectl apply -f data/data_source.yaml
 ```
 
-You should be able to see the data flowing into the created topics. The mock data will generate data for 150 trucks, simulating their locations and some engine temperature and RPM alerts like this:
+🔍 **Check Status:** You can go to Control Center to see the data flowing into the following topics:
+* `vehicle-description`: A master table with vehicle details (brand, driver, etc.).
+* `vehicle-location`: A continuous stream of vehicle coordinates.
+* `vehicle-info`: A continuous stream of engine temperature and RPM readings.
 
-- vehicle-location: Messages will associate a vehicle_id to a latitude/longitude and a point in time.
-- vehicle-info: Messages will associate a vehicle_id to an engine temperature, average RPM and a point in time.
-- vehicle-description: Master table with all the vehicle_ids and their brand, license plate and name of the driver.
-
-The vehicle-description generates a small number of messages and it is normal that once it has generated the contents of the master table (151 messages) it will remain in Failed mode.
+> **Note:** The `vehicle-description` connector will generate its 151 messages and then stop, entering a `Failed` state. This is expected behavior as its job is just to populate the "master table" once.
 
 
-## Install CP Flink
+## 4. Install CP Flink
 
-Let's complete the set up now deploying all the necessary pieces to have a Flink environment.
+Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apache Flink (CMF).
 
-Install certificate manager:
+### Install Prerequities
 
 ```shell
+# Install certificate manager, a requirement for the Flink Operator:
+
 kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
-```
 
-Wait until an endpoint IP is assigned when executing the following:
+# Wait until an endpoint IP is assigned when executing the following:
 
-```shell
 watch kubectl get endpoints -n cert-manager cert-manager-webhook
 ```
 
-Now install the Flink Kubernetes Operator:
+### Install Operators
+
+Install the Flink Kubernetes Operator:
 
 ```shell
 kubectl config set-context --current --namespace=confluent
 helm upgrade --install cp-flink-kubernetes-operator --version "~1.120.0" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
 ```
 
-With the Operator deployed, now we can deploy Confluent Manager for Apache Flink.It will also have mTLS configured in the file mtls-cmf.yaml, and encryption keys defined, as needed for production use. In case cmf.sql.production=false is defined, no encryption keys are required.
+With the Operator deployed, now we can deploy Confluent Manager for Apache Flink. It will also have mTLS configured in the file mtls-cmf.yaml, and encryption keys defined, as needed for production use. In case cmf.sql.production=false is defined, no encryption keys are required.
 
 ```shell
 openssl rand -out ./certs/cmf.key 32
@@ -233,23 +260,26 @@ And then, forward the port:
 kubectl port-forward service/cmf-service 8080:80 -n confluent > /dev/null 2>&1 &
 ```
 
+### Deploy CMF REST Class
+
 And deploy CMFRestClass, to allow defining FlinkEnvironments and FlinkApplications with CfK:
 
 ```shell
 kubectl apply -f cp/cmf-rest-class.yaml
 ```
 
-And check it has been successfully deployed checking:
-
+🔍 **Check Status:** You can verify that the `cmfrestclass` was created successfully.
 ```shell
 kubectl get cmfrestclass cmfrestclass -n confluent -oyaml
 ```
 
-It may take some seconds, but you should see one instance called "cmfrestclass" and no errors.
+---
 
-## Process the data with Flink
+## 5. Process the data with Flink
 
-At this point, the environment is ready and we can start deploying Flink Environment and applications. We will deploy the FlinkEnvironment and FlinkApplication declaratively, by using the corresponding Yaml files.
+With the full environment ready, it's time to deploy and run our Flink SQL job.
+
+### Build the Application Image
 
 We will be leveraging the standard `flink-sql-runner-example` (https://github.com/apache/flink-kubernetes-operator/tree/main/examples/flink-sql-runner-example).
 
@@ -263,37 +293,37 @@ kind load docker-image flink-sql-runner-example:latest
 cd ../..
 ```
 
+### Deploy the Flink Application
+
+The Flink application is defined declaratively. It will perform the following steps:
+
+1.  Calculates the real-time speed of each truck based on its location data.
+2.  Generates an alert if a truck exceeds a threshold for speed (>120 km/h), engine temperature (>210°C), or RPMs (>7500).
+3.  Enriches these alerts by joining them with the `vehicle-description` table to add the driver's name, vehicle brand, and license plate.
+4.  Writes the final, enriched alerts to the `vehicle-alerts-enriched` topic.
+
 And now create our CP Flink environment:
 
 ```shell
+# First, create the Flink Environment
+
 kubectl apply -f flink/flink-environment.yaml
-```
 
-And after our application:
-
-```shell
+# Then, deploy the application
 kubectl apply -f flink/flink-application.yaml
 ```
 
-Check pods are ready (1 job manager and 3 task managers):
-
-```shell
+🔍 **Check Status:** Wait for the Flink JobManager and TaskManager pods to start.
+---shell
 watch kubectl get pods
-```
 
-The application does several steps:
+✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 
-- First of all, processes the vehicle-locations topic to calculate the average speed that a truck needed to move from one point to the next. As locaitons are random, the speed values may not be very realistic. These values are published into the vehicle-speed topic.
-
-- Then, a topic vehicle-alerts is filled with the vehicle_ids and point in time when a certain truck exceeded 210 degrees, 7500 rpm or 120 kmh. These thresholds have been chose randomly just for the demo.
-
-- Finally, those alerts are enriched with the brand, license plate and name of the driver coming from the vehicle-description master table and written to the vehicle-alerts-enriched topic.
-
-You can check the status and the metrics of the Flink Application just by clicking on the "Apache Flink Dashboard" button integrated in the FlinkApplication page of the Control Center.
+---
 
 ## Cleanup
 
-You can clean all the environment just by running
+To completely remove the Kubernetes cluster and all its resources, simply run:
 
 ```shell
 kind delete cluster
