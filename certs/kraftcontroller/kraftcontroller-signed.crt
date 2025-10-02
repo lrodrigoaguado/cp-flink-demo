@@ -1,0 +1,131 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 4096 (0x1000)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=ca1.test.confluent.io, OU=TEST, O=CONFLUENT, L=PaloAlto, ST=Ca, C=US
+        Validity
+            Not Before: Sep 29 20:39:26 2025 GMT
+            Not After : Jun 25 20:39:26 2028 GMT
+        Subject: CN=kraftcontroller,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+                    00:e1:33:45:d7:8f:4a:e3:d2:23:97:51:0b:85:fc:
+                    46:7b:9f:55:7a:c6:17:a3:d8:47:d5:d1:77:23:25:
+                    0d:0e:c4:2a:0c:42:1b:b7:c6:96:bf:2e:5b:7e:82:
+                    10:8c:89:87:ab:be:48:ef:33:1b:5c:cd:c5:22:81:
+                    ad:36:77:a0:26:56:f5:4a:c1:45:f9:af:d3:d6:cb:
+                    00:cd:e2:ab:a6:dd:c2:9f:14:fa:00:63:4d:f4:af:
+                    a8:61:90:da:b4:59:3a:d5:b4:c8:3c:97:4d:f5:12:
+                    da:2b:de:46:33:cb:d9:0c:5e:89:fe:bf:44:e7:1f:
+                    4f:ea:b7:0f:40:1b:78:66:96:af:77:aa:76:a1:8e:
+                    a6:73:d6:17:86:1c:dc:1a:3d:ba:64:0b:12:c2:82:
+                    0a:b3:d7:d3:ff:38:9c:06:f8:c8:88:cd:96:bb:9f:
+                    25:19:ac:ad:31:c0:84:35:8e:1e:a1:55:5c:d3:09:
+                    09:53:b4:b4:f0:30:63:19:e1:df:6f:18:42:0f:95:
+                    b0:af:ad:f8:fd:54:2a:2a:86:f0:50:22:d8:a5:04:
+                    34:ea:84:34:ad:6a:7f:df:a8:ba:a7:7d:70:c8:97:
+                    ad:2a:28:d9:91:e1:dd:56:9c:a9:ba:b9:c2:b4:cb:
+                    80:08:78:f5:55:aa:44:f1:b6:91:8f:4b:22:b4:f5:
+                    80:33:0b:a1:79:dc:e0:3a:ba:57:1c:e1:a1:2b:d6:
+                    ce:0d:2b:22:66:1a:e6:b4:79:80:cf:53:9b:33:b1:
+                    a5:98:7d:68:5b:51:8a:09:b3:50:bf:df:8b:8c:8b:
+                    30:d5:06:a1:bc:57:b0:1e:bd:b2:34:28:c8:53:6f:
+                    52:74:74:1b:6b:b9:f3:63:bb:ee:95:73:67:16:f3:
+                    c6:6c:a9:85:f3:62:d5:e7:e5:b8:49:7a:1d:12:55:
+                    be:cd:27:9c:47:6b:34:82:4b:aa:53:af:9d:a9:5c:
+                    ea:e4:0c:d8:4d:ee:47:47:48:ee:3e:e9:e9:78:05:
+                    27:c6:8c:e5:f4:43:db:0d:a2:fa:35:2e:e2:f9:3c:
+                    75:4f:14:df:e8:73:19:d9:89:b8:c2:bd:bf:6b:ae:
+                    d4:23:3f:51:a0:46:38:7f:cf:69:41:e0:08:6c:7e:
+                    b9:4d:9b:93:44:ae:a2:88:24:e0:ea:a4:22:d1:c3:
+                    2b:f6:65:1a:52:cc:8e:1a:fe:ec:03:ba:d1:2f:ef:
+                    65:d7:ae:27:0a:f2:c1:be:fd:8d:e1:f5:f1:2a:42:
+                    d8:35:ba:4b:e6:2b:e5:27:c3:93:04:b3:54:8b:bd:
+                    5d:ab:8f:40:99:1b:83:19:bb:8b:b5:45:da:f1:dd:
+                    53:ba:43:7b:b0:06:0c:cf:4a:77:87:c1:0f:46:21:
+                    3c:a8:a3
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                6D:2A:D7:EE:BF:B3:8A:80:6D:BB:6C:82:49:4E:91:1F:E0:BE:47:9E
+            X509v3 Authority Key Identifier: 
+                8F:24:7C:F7:E7:69:51:B8:58:00:F3:A8:9D:A0:47:70:CD:04:83:CA
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Subject Alternative Name: 
+                DNS:kraftcontroller, DNS:kraftcontroller.confluent.svc.cluster.local, DNS:kraftcontroller-service, DNS:*.confluent.svc.cluster.local, DNS:*.kraftcontroller.confluent.svc.cluster.local
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        6b:3f:66:11:f6:dd:2c:1b:9b:b6:92:aa:42:89:88:a6:42:50:
+        80:76:cf:b0:c6:6d:27:f1:4d:5d:9a:3e:82:24:ea:eb:ca:ac:
+        1c:bf:fb:06:b1:67:86:43:49:cf:25:91:dd:8a:07:eb:9e:92:
+        5a:a4:a8:56:ee:9d:cf:15:78:97:55:6c:a7:f2:33:50:a8:b7:
+        8f:c8:b4:e0:d5:76:4b:0e:a9:e7:40:4d:a8:45:c3:c0:5e:c0:
+        aa:69:f7:61:57:07:16:47:7d:3d:45:03:45:65:90:1b:1d:8b:
+        7c:02:24:e9:0a:be:29:50:4c:d2:ff:30:21:b0:ac:61:d7:b3:
+        24:25:4f:4d:f8:26:61:0c:e3:66:1e:f1:e2:33:a4:cb:5a:68:
+        fd:8c:4d:f0:e9:66:a6:c6:74:2e:20:a0:4f:46:53:24:be:10:
+        7c:ac:de:15:97:cf:4b:2c:cf:d1:42:de:7a:ca:d3:8e:2a:11:
+        0e:05:35:cc:b3:47:5a:e6:ed:2d:c5:e9:6a:03:4a:82:fd:dd:
+        f3:cb:f3:db:6e:c2:76:cc:f8:40:58:24:6c:53:de:a8:07:33:
+        55:67:d4:ae:f9:7f:26:f3:de:15:a0:27:18:05:e7:b9:5c:5f:
+        c4:fb:99:9f:6f:7a:59:3f:99:ee:f8:f6:4d:18:21:bb:69:98:
+        bd:f1:7d:13:e9:47:53:d3:bf:6d:89:32:4b:22:a0:29:70:b6:
+        97:30:e4:63:a9:54:d4:74:f3:4d:21:0b:e2:e8:8f:e7:4b:40:
+        50:1c:0d:6b:8b:34:d0:dd:79:33:fe:d6:e2:ca:3d:68:4e:e3:
+        2e:83:de:cd:07:ab:94:4c:89:99:1d:e0:2c:7a:ae:ab:04:7b:
+        9c:8a:d4:e2:8c:cc:ac:45:a8:d0:f6:0d:e6:d6:21:49:81:13:
+        72:f1:08:43:46:ab:ae:2a:25:57:ae:7e:3d:18:07:9b:dd:00:
+        a9:8e:17:88:3b:3f:1a:09:dc:b1:96:d8:8d:ae:e4:79:24:7b:
+        c9:a9:55:f7:e0:ce:bf:20:25:f7:cc:a3:7b:53:68:64:f5:42:
+        96:f1:b1:bf:eb:96:f5:ce:38:25:86:62:9d:19:61:4c:a4:2d:
+        87:4b:89:8b:13:88:78:9c:50:7b:4e:1c:0c:a6:84:c7:a5:7c:
+        fe:99:45:82:8e:9f:cf:f4:2c:95:70:bd:aa:57:2a:33:57:08:
+        bf:b8:ef:d3:18:98:81:83:b9:86:f3:53:e2:c2:08:dd:14:f7:
+        f2:c5:48:23:48:32:45:0a:75:cc:3c:07:1a:3b:67:66:62:f6:
+        78:59:4b:e3:c8:0f:8e:42:cd:d3:98:13:f7:1d:21:8f:83:fc:
+        7b:fb:74:80:ef:26:cc:db
+-----BEGIN CERTIFICATE-----
+MIIGXzCCBEegAwIBAgICEAAwDQYJKoZIhvcNAQELBQAwcDEeMBwGA1UEAwwVY2Ex
+LnRlc3QuY29uZmx1ZW50LmlvMQ0wCwYDVQQLDARURVNUMRIwEAYDVQQKDAlDT05G
+TFVFTlQxETAPBgNVBAcMCFBhbG9BbHRvMQswCQYDVQQIDAJDYTELMAkGA1UEBhMC
+VVMwHhcNMjUwOTI5MjAzOTI2WhcNMjgwNjI1MjAzOTI2WjBDMUEwPwYDVQQDDDhr
+cmFmdGNvbnRyb2xsZXIsT1U9VEVTVCxPPUNPTkZMVUVOVCxMPVBhbG9BbHRvLFM9
+Q2EsQz1VUzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAOEzRdePSuPS
+I5dRC4X8RnufVXrGF6PYR9XRdyMlDQ7EKgxCG7fGlr8uW36CEIyJh6u+SO8zG1zN
+xSKBrTZ3oCZW9UrBRfmv09bLAM3iq6bdwp8U+gBjTfSvqGGQ2rRZOtW0yDyXTfUS
+2iveRjPL2Qxeif6/ROcfT+q3D0AbeGaWr3eqdqGOpnPWF4Yc3Bo9umQLEsKCCrPX
+0/84nAb4yIjNlrufJRmsrTHAhDWOHqFVXNMJCVO0tPAwYxnh328YQg+VsK+t+P1U
+KiqG8FAi2KUENOqENK1qf9+ouqd9cMiXrSoo2ZHh3Vacqbq5wrTLgAh49VWqRPG2
+kY9LIrT1gDMLoXnc4Dq6VxzhoSvWzg0rImYa5rR5gM9TmzOxpZh9aFtRigmzUL/f
+i4yLMNUGobxXsB69sjQoyFNvUnR0G2u582O77pVzZxbzxmyphfNi1efluEl6HRJV
+vs0nnEdrNIJLqlOvnalc6uQM2E3uR0dI7j7p6XgFJ8aM5fRD2w2i+jUu4vk8dU8U
+3+hzGdmJuMK9v2uu1CM/UaBGOH/PaUHgCGx+uU2bk0Suoogk4OqkItHDK/ZlGlLM
+jhr+7AO60S/vZdeuJwrywb79jeH18SpC2DW6S+Yr5SfDkwSzVIu9XauPQJkbgxm7
+i7VF2vHdU7pDe7AGDM9Kd4fBD0YhPKijAgMBAAGjggEuMIIBKjAdBgNVHQ4EFgQU
+bSrX7r+zioBtu2yCSU6RH+C+R54wHwYDVR0jBBgwFoAUjyR89+dpUbhYAPOonaBH
+cM0Eg8owCQYDVR0TBAIwADALBgNVHQ8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUH
+AwEGCCsGAQUFBwMCMIGwBgNVHREEgagwgaWCD2tyYWZ0Y29udHJvbGxlcoIra3Jh
+ZnRjb250cm9sbGVyLmNvbmZsdWVudC5zdmMuY2x1c3Rlci5sb2NhbIIXa3JhZnRj
+b250cm9sbGVyLXNlcnZpY2WCHSouY29uZmx1ZW50LnN2Yy5jbHVzdGVyLmxvY2Fs
+gi0qLmtyYWZ0Y29udHJvbGxlci5jb25mbHVlbnQuc3ZjLmNsdXN0ZXIubG9jYWww
+DQYJKoZIhvcNAQELBQADggIBAGs/ZhH23Swbm7aSqkKJiKZCUIB2z7DGbSfxTV2a
+PoIk6uvKrBy/+waxZ4ZDSc8lkd2KB+ueklqkqFbunc8VeJdVbKfyM1Cot4/ItODV
+dksOqedATahFw8BewKpp92FXBxZHfT1FA0VlkBsdi3wCJOkKvilQTNL/MCGwrGHX
+syQlT034JmEM42Ye8eIzpMtaaP2MTfDpZqbGdC4goE9GUyS+EHys3hWXz0ssz9FC
+3nrK044qEQ4FNcyzR1rm7S3F6WoDSoL93fPL89tuwnbM+EBYJGxT3qgHM1Vn1K75
+fybz3hWgJxgF57lcX8T7mZ9velk/me749k0YIbtpmL3xfRPpR1PTv22JMksioClw
+tpcw5GOpVNR0800hC+Loj+dLQFAcDWuLNNDdeTP+1uLKPWhO4y6D3s0Hq5RMiZkd
+4Cx6rqsEe5yK1OKMzKxFqND2DebWIUmBE3LxCENGq64qJVeufj0YB5vdAKmOF4g7
+PxoJ3LGW2I2u5Hkke8mpVffgzr8gJffMo3tTaGT1Qpbxsb/rlvXOOCWGYp0ZYUyk
+LYdLiYsTiHicUHtOHAymhMelfP6ZRYKOn8/0LJVwvapXKjNXCL+479MYmIGDuYbz
+U+LCCN0U9/LFSCNIMkUKdcw8Bxo7Z2Zi9nhZS+PID45CzdOYE/cdIY+D/Hv7dIDv
+Jszb
+-----END CERTIFICATE-----

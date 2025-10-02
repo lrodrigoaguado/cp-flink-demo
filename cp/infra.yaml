@@ -18,7 +18,7 @@ spec:
           - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
   tls:
     secretRef: kraftcontroller-tls
-  replicas: 1
+  replicas: 3
   podTemplate:
     resources:
       limits:

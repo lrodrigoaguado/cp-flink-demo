@@ -1,0 +1,7 @@
+confluentinc/confluent-init-container:3.0.0
+docker.io/confluentinc/confluent-operator:0.1193.1
+docker.io/confluentinc/cp-enterprise-control-center-next-gen:2.2.0
+docker.io/confluentinc/cp-kafka-rest:8.0.0
+docker.io/confluentinc/cp-schema-registry:8.0.0
+docker.io/confluentinc/cp-server-connect:8.0.0
+docker.io/confluentinc/cp-server:8.0.0

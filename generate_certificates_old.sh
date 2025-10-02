@@ -19,6 +19,7 @@ echo 1000 > ca/serial
 touch ca/index
 
 # Generate the Certificate Authority (CA) key and self-signed certificate
+# This creates cacert.pem (the public cert) and cakey.pem (the private key)
 openssl req -new -x509 \
     -config ca/openssl-ca.cnf \
     -keyout cakey.pem \
@@ -40,6 +41,7 @@ keytool -noprompt -importcert \
         -storetype PKCS12
 
 # --- 2. Component Certificate Generation ---
+# Loop through each component to generate its keystore and truststore
 for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1
 do
   echo ""
@@ -49,15 +51,15 @@ do
 
   # Create host keystore
   keytool -genkey -noprompt \
-      -alias $i \
-      -dname "CN=$i,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US" \
-      -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
-      -keystore $i/$i.keystore.jks \
-      -keyalg RSA \
-      -storepass confluent \
-      -keypass confluent \
-      -validity 999 \
-      -storetype pkcs12
+  	  -alias $i \
+  	  -dname "CN=$i,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US" \
+          -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
+  	  -keystore $i/$i.keystore.jks \
+  	  -keyalg RSA \
+  	  -storepass confluent \
+  	  -keypass confluent \
+  	  -validity 999 \
+  	  -storetype pkcs12
 
   # Create the certificate signing request (CSR)
   keytool -certreq \
@@ -66,7 +68,7 @@ do
           -storepass confluent \
           -keypass confluent \
           -storetype pkcs12 \
-          -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
+          -ext san=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local,DNS:$i-service \
           -file $i/$i.csr
 
   # Sign the host certificate with the certificate authority (CA)
@@ -87,7 +89,7 @@ do
           -storepass confluent \
           -storetype pkcs12
 
-  # Import the signed host certificate
+  # Import the signed host certificate, associating it with the existing private key alias
   keytool -noprompt -importcert \
           -keystore $i/$i.keystore.jks \
           -alias $i \
@@ -106,7 +108,7 @@ do
   # Save creds
   echo -n "jksPassword=confluent" > $i/${i}.jksPassword.txt
 
-  # Copy the CA certificate
+  # Copy the CA certificate to the component's directory for easy access
   cp cacert.pem $i/ca.pem
 
   # Clean up the intermediate CSR file
@@ -118,22 +120,26 @@ done
 
 
 # --- 3. Control Center Certificate Generation ---
+# For some reason, I could not make C3++ work with keystore/truststore, but needed pem certs
 for i in prometheus-client alertmanager-client prometheus alertmanager controlcenter-ng cmfrestclass connector
 do
   echo "------------------------------- $i -------------------------------"
+  #rm -rf $i
   mkdir -p $i
 
   # Generate the private key
   openssl genrsa -out $i/key.pem 4096
 
   # Create the Certificate Signing Request (CSR)
+  # The SAN (Subject Alternative Name) is crucial for proper hostname validation
   openssl req -new \
           -key $i/key.pem \
           -subj "/CN=$i,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US" \
-          -addext "subjectAltName=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local" \
+          -addext "subjectAltName=DNS:$i,DNS:$i.confluent.svc.cluster.local,DNS:*.$i.confluent.svc.cluster.local,DNS:*.confluent.svc.cluster.local" \
           -out $i/$i.csr
 
   # Sign the CSR with our CA
+  # This creates the final, signed public certificate for the component
   openssl ca \
           -config ca/openssl-ca.cnf \
           -policy signing_policy \
@@ -150,7 +156,7 @@ do
     -storepass confluent \
     -storetype PKCS12
 
-  # Copy the CA certificate
+  # Copy the CA certificate to the component's directory for easy access
   cp cacert.pem $i/ca.pem
 
   # Clean up the intermediate CSR file

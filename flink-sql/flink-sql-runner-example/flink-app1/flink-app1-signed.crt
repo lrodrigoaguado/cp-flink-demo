@@ -1,0 +1,129 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 4102 (0x1006)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=ca1.test.confluent.io, OU=TEST, O=CONFLUENT, L=PaloAlto, ST=Ca, C=US
+        Validity
+            Not Before: Sep 29 20:02:15 2025 GMT
+            Not After : Jun 25 20:02:15 2028 GMT
+        Subject: CN=flink-app1,OU=TEST,O=CONFLUENT,L=PaloAlto,S=Ca,C=US
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+                    00:8d:d5:62:64:32:eb:18:17:fb:aa:fb:f2:7f:9a:
+                    c6:94:13:bb:83:46:49:1c:a2:3e:bc:dc:0d:94:f9:
+                    34:ae:00:f8:5d:7f:9d:db:3e:a9:36:43:5e:d0:a6:
+                    ef:b7:2d:32:c3:98:a1:de:81:a5:6f:8a:ec:01:b0:
+                    3d:41:e7:ce:53:dc:4a:2d:15:33:cb:59:fa:bc:ad:
+                    ef:16:52:f1:d6:4c:1a:4f:dc:fa:58:6c:61:bf:e6:
+                    f2:9e:a3:65:ce:7f:ef:9e:05:aa:1f:91:42:76:dc:
+                    5c:b0:f0:b7:fe:20:fc:3d:fc:f3:e1:68:25:99:c0:
+                    52:98:d1:86:f6:1d:ec:a4:b5:6a:89:d8:3f:10:61:
+                    a1:e0:fa:23:ca:1b:18:55:a9:52:fb:cb:62:e8:b3:
+                    b6:2d:fc:22:5f:47:dc:79:17:b8:40:40:49:d9:21:
+                    99:33:ae:86:b1:7a:3b:5b:30:0f:a5:9b:db:9a:05:
+                    60:c6:7c:70:21:d3:b1:29:ec:8b:6d:6c:22:05:ab:
+                    04:cf:07:7d:94:a6:08:de:8e:90:9e:8b:f3:99:b0:
+                    be:8e:e4:44:58:a3:78:fe:00:33:08:d1:7d:8d:d4:
+                    4d:82:42:d6:48:ff:62:19:d6:86:4f:ad:4a:96:a4:
+                    8b:b0:a0:88:61:9e:15:fc:c5:a6:42:cf:9f:7c:98:
+                    8c:23:aa:6d:7c:87:fe:90:2d:b3:54:d0:0f:1d:04:
+                    22:9d:34:5f:f5:ea:f6:60:9d:74:25:d3:ba:8f:24:
+                    f1:7b:3b:cd:09:38:94:40:58:5c:2c:27:6a:ed:f8:
+                    1b:9a:f5:f6:2e:f2:af:fa:b4:64:e6:be:0d:67:7e:
+                    66:4c:e8:9b:c7:2e:ba:ec:94:4f:02:72:fd:35:fa:
+                    ca:12:06:cb:d2:39:93:de:58:5f:f0:f4:c5:72:0d:
+                    b6:68:95:0d:e1:72:12:06:06:33:f2:b4:09:6f:da:
+                    ad:fc:c1:3d:9d:b1:4c:76:14:15:3e:04:9a:67:cd:
+                    29:46:dd:f9:dc:f3:5a:8c:07:03:bf:5d:d0:a1:1c:
+                    2e:8c:8b:ee:bc:cb:83:e0:58:38:e3:d9:af:0a:b5:
+                    1c:c1:49:bc:7f:89:fe:93:83:ae:70:ec:01:49:1f:
+                    a9:79:86:24:f2:cf:2b:28:5e:de:ee:65:ca:17:4f:
+                    4b:7f:c4:e2:2a:fc:d1:34:19:ba:e9:a6:a1:c1:c6:
+                    58:ef:11:d9:ce:8f:97:84:b5:e7:14:e7:2f:5f:c7:
+                    2d:48:2b:6d:63:6a:31:95:68:99:41:c7:6c:0e:43:
+                    35:6a:87:d3:a6:62:8e:44:41:fa:22:c8:ac:60:25:
+                    16:58:b7:0e:d1:33:f0:d5:9d:29:e7:30:e5:b4:25:
+                    a7:aa:43
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                F1:26:82:22:2D:33:D9:4A:2A:FF:1C:89:5F:10:08:AA:BE:A5:CB:A5
+            X509v3 Authority Key Identifier: 
+                AC:79:22:0D:22:71:B7:1B:47:E0:0B:D7:25:95:9F:D7:F0:A5:19:7C
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication, TLS Web Client Authentication
+            X509v3 Subject Alternative Name: 
+                DNS:flink-app1, DNS:flink-app1.confluent.svc.cluster.local, DNS:*.confluent.svc.cluster.local, DNS:flink-app1-service
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        49:e5:f7:d7:c6:07:ab:8c:f8:a6:01:f9:48:99:16:89:cf:07:
+        a4:79:10:e8:96:58:51:57:64:8e:95:b4:aa:b5:3c:56:7d:a8:
+        9c:f1:02:fd:5b:ae:2f:51:46:0a:10:76:9a:07:fc:59:5e:f6:
+        56:c5:ff:d8:1e:ba:82:f2:db:91:69:c2:2d:a7:42:76:d4:5d:
+        65:a5:2f:ca:ee:92:a0:ad:22:e7:d2:a5:10:6a:33:39:a2:35:
+        aa:f2:8e:33:ba:ce:00:5b:a3:0b:7b:ea:40:aa:1c:89:e3:40:
+        10:6b:9f:7a:f5:34:e9:3f:54:ea:e7:df:35:f0:5a:22:67:84:
+        8d:57:dc:96:03:1e:ed:c7:ba:bc:c7:ea:a7:74:30:9c:8f:0f:
+        86:15:20:01:10:ce:1b:3a:1a:a0:31:3d:e3:62:9b:a1:62:3b:
+        af:8f:c0:4c:11:ec:18:9e:d8:0a:8c:6f:68:12:0a:4b:6b:3b:
+        c3:6b:54:58:15:e8:5c:b2:9a:b2:f6:af:bb:88:53:46:ea:a0:
+        0e:ab:3f:aa:aa:e6:83:bb:4f:96:c2:3c:f5:7b:aa:9c:f9:19:
+        ce:e6:bc:63:fa:b5:44:58:d0:8a:8c:8c:c6:d3:52:53:40:91:
+        59:6a:ad:6f:0b:96:15:d3:5e:06:67:bb:3d:0e:4e:95:87:4b:
+        e9:b9:36:df:2e:0a:94:5a:cd:01:99:1c:d8:33:30:03:fb:ef:
+        d4:d4:71:23:50:93:ba:7e:8c:9a:ac:1b:45:87:68:6c:34:51:
+        fc:2c:7f:ae:ab:71:f1:e5:9c:0d:e5:5e:90:5d:40:42:1c:dd:
+        e2:f2:36:e6:7e:79:5c:0d:7a:02:8f:28:7e:7c:61:78:df:1b:
+        f4:30:f0:5b:26:1a:a9:d3:47:ce:91:f1:d7:78:1f:74:a9:03:
+        ce:c2:89:64:2d:e8:1f:59:d4:5c:d2:dc:e3:ad:a3:a5:42:58:
+        da:71:24:f9:b3:ae:c1:73:f3:9b:83:15:a5:f8:be:6e:3e:e6:
+        96:89:98:87:86:08:64:d1:05:34:32:7e:78:c1:dd:c3:da:97:
+        1c:07:7f:40:ee:b3:26:d2:64:d9:99:05:1a:f7:64:ba:2c:ea:
+        1a:7b:36:2b:8e:07:fe:31:4f:70:01:2d:c1:26:30:01:08:e1:
+        1c:d6:04:f4:41:b2:49:1f:d1:f6:30:c6:7a:d7:1f:9b:00:dd:
+        4f:46:27:31:8f:c9:f8:c9:ca:58:7e:b5:3c:78:39:76:bb:1d:
+        35:a8:e4:1f:17:83:ab:6b:b9:cc:52:fe:ba:0e:00:24:e5:0f:
+        ff:ce:0a:ac:18:d6:03:21:35:0e:11:1c:8d:8f:83:17:d9:d3:
+        62:7d:9d:06:eb:44:71:f0
+-----BEGIN CERTIFICATE-----
+MIIGFzCCA/+gAwIBAgICEAYwDQYJKoZIhvcNAQELBQAwcDEeMBwGA1UEAwwVY2Ex
+LnRlc3QuY29uZmx1ZW50LmlvMQ0wCwYDVQQLDARURVNUMRIwEAYDVQQKDAlDT05G
+TFVFTlQxETAPBgNVBAcMCFBhbG9BbHRvMQswCQYDVQQIDAJDYTELMAkGA1UEBhMC
+VVMwHhcNMjUwOTI5MjAwMjE1WhcNMjgwNjI1MjAwMjE1WjA+MTwwOgYDVQQDDDNm
+bGluay1hcHAxLE9VPVRFU1QsTz1DT05GTFVFTlQsTD1QYWxvQWx0byxTPUNhLEM9
+VVMwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCN1WJkMusYF/uq+/J/
+msaUE7uDRkkcoj683A2U+TSuAPhdf53bPqk2Q17Qpu+3LTLDmKHegaVviuwBsD1B
+585T3EotFTPLWfq8re8WUvHWTBpP3PpYbGG/5vKeo2XOf++eBaofkUJ23Fyw8Lf+
+IPw9/PPhaCWZwFKY0Yb2HeyktWqJ2D8QYaHg+iPKGxhVqVL7y2Los7Yt/CJfR9x5
+F7hAQEnZIZkzroaxejtbMA+lm9uaBWDGfHAh07Ep7IttbCIFqwTPB32UpgjejpCe
+i/OZsL6O5ERYo3j+ADMI0X2N1E2CQtZI/2IZ1oZPrUqWpIuwoIhhnhX8xaZCz598
+mIwjqm18h/6QLbNU0A8dBCKdNF/16vZgnXQl07qPJPF7O80JOJRAWFwsJ2rt+Bua
+9fYu8q/6tGTmvg1nfmZM6JvHLrrslE8Ccv01+soSBsvSOZPeWF/w9MVyDbZolQ3h
+chIGBjPytAlv2q38wT2dsUx2FBU+BJpnzSlG3fnc81qMBwO/XdChHC6Mi+68y4Pg
+WDjj2a8KtRzBSbx/if6Tg65w7AFJH6l5hiTyzysoXt7uZcoXT0t/xOIq/NE0Gbrp
+pqHBxljvEdnOj5eEtecU5y9fxy1IK21jajGVaJlBx2wOQzVqh9OmYo5EQfoiyKxg
+JRZYtw7RM/DVnSnnMOW0JaeqQwIDAQABo4HsMIHpMB0GA1UdDgQWBBTxJoIiLTPZ
+Sir/HIlfEAiqvqXLpTAfBgNVHSMEGDAWgBSseSINInG3G0fgC9cllZ/X8KUZfDAJ
+BgNVHRMEAjAAMAsGA1UdDwQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYB
+BQUHAwIwcAYDVR0RBGkwZ4IKZmxpbmstYXBwMYImZmxpbmstYXBwMS5jb25mbHVl
+bnQuc3ZjLmNsdXN0ZXIubG9jYWyCHSouY29uZmx1ZW50LnN2Yy5jbHVzdGVyLmxv
+Y2FsghJmbGluay1hcHAxLXNlcnZpY2UwDQYJKoZIhvcNAQELBQADggIBAEnl99fG
+B6uM+KYB+UiZFonPB6R5EOiWWFFXZI6VtKq1PFZ9qJzxAv1bri9RRgoQdpoH/Fle
+9lbF/9geuoLy25Fpwi2nQnbUXWWlL8rukqCtIufSpRBqMzmiNaryjjO6zgBbowt7
+6kCqHInjQBBrn3r1NOk/VOrn3zXwWiJnhI1X3JYDHu3HurzH6qd0MJyPD4YVIAEQ
+zhs6GqAxPeNim6FiO6+PwEwR7Bie2AqMb2gSCktrO8NrVFgV6FyymrL2r7uIU0bq
+oA6rP6qq5oO7T5bCPPV7qpz5Gc7mvGP6tURY0IqMjMbTUlNAkVlqrW8LlhXTXgZn
+uz0OTpWHS+m5Nt8uCpRazQGZHNgzMAP779TUcSNQk7p+jJqsG0WHaGw0Ufwsf66r
+cfHlnA3lXpBdQEIc3eLyNuZ+eVwNegKPKH58YXjfG/Qw8FsmGqnTR86R8dd4H3Sp
+A87CiWQt6B9Z1FzS3OOto6VCWNpxJPmzrsFz85uDFaX4vm4+5paJmIeGCGTRBTQy
+fnjB3cPalxwHf0DusybSZNmZBRr3ZLos6hp7NiuOB/4xT3ABLcEmMAEI4RzWBPRB
+skkf0fYwxnrXH5sA3U9GJzGPyfjJylh+tTx4OXa7HTWo5B8Xg6trucxS/roOACTl
+D//OCqwY1gMhNQ4RHI2PgxfZ02J9nQbrRHHw
+-----END CERTIFICATE-----
