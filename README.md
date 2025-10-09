@@ -251,7 +251,7 @@ helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-fo
     --namespace confluent
 ```
 
-Wait until the CMF operator pod is Running and ready:
+🔍 **Check Status:** Wait until the CMF operator pod is Running and ready:
 
 ```shell
 watch kubectl -n confluent get pods
@@ -352,7 +352,7 @@ kubectl apply -f data/data_sink.yaml
 Information will start flowing from the output topic in Kafka to Elasticsearch. Run the following command to create the dashboard that can help analyzing the data:
 
 ```shell
-curl -v -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \
+curl -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \
   -u elastic:elastic \
   -H "kbn-xsrf: true" \
   --form file=@./kibana/fleet_alerts.ndjson \
