@@ -373,7 +373,7 @@ spec:
                       "logicalType": "timestamp-millis",
                       "arg.properties": {
                           "iteration": {
-                              "start": 1609459200000,
+                              "start": 1735725600000,
                               "step": 100000
                           }
                       }
@@ -464,7 +464,7 @@ spec:
                   "logicalType": "timestamp-millis",
                   "arg.properties": {
                       "iteration": {
-                          "start": 1609459200000,
+                          "start": 1735725600000,
                           "step": 100000
                       }
                   }

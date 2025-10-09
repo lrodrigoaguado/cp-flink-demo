@@ -28,7 +28,7 @@ CREATE TABLE vehicle_description (
 CREATE TABLE vehicle_location (
   `vehicle_id` INT,
   `location` ROW<latitude DOUBLE, longitude DOUBLE>,
-  `ts` BIGINT, -- epoch millis
+  `ts` BIGINT,
   `event_time` AS TO_TIMESTAMP_LTZ(ts, 3),
   WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND
 ) WITH (

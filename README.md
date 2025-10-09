@@ -343,13 +343,23 @@ curl -X PUT "localhost:9200/_index_template/vehicle-alerts-template" \
   }'
 ```
 
-and once that is ready, we start a Elasticsearch Sink Connector that will write the contents of that topic to an Elasticsearch index:
+and once that it is ready, we start a Elasticsearch Sink Connector that will write the contents of that topic to an Elasticsearch index:
 
 ```shell
 kubectl apply -f data/data_sink.yaml
 ```
 
-You should be able to connecto to http://localhost:5601 and use the credentials elastic/elastic to log into Kibana and see the data flowing.
+Information will start flowing from the output topic in Kafka to Elasticsearch. Run the following command to create the dashboard that can help analyzing the data:
+
+```shell
+curl -v -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \
+  -u elastic:elastic \
+  -H "kbn-xsrf: true" \
+  --form file=@./kibana/fleet_alerts.ndjson \
+  -k
+```
+
+You should be able to connecto to https://localhost:5601/app/dashboards#/view/edc82d17-8f5b-4112-ae57-04571e41c276?_g=(filters:!()) and use the credentials elastic/elastic to log into Kibana and see the data flowing.
 
 ✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 
