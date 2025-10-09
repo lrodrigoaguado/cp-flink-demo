@@ -342,7 +342,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: elastic-credentials
+  name: elasticsearch-es-elastic-user
   namespace: confluent
 type: Opaque
 stringData:
@@ -368,7 +368,7 @@ spec:
         logger.org.elasticsearch.action: "DEBUG"
   auth:
     fileRealm:
-      - secretName: elastic-credentials
+      - secretName: elasticsearch-es-elastic-user
 ---
 apiVersion: kibana.k8s.elastic.co/v1
 kind: Kibana
@@ -380,18 +380,3 @@ spec:
   count: 1
   elasticsearchRef:
     name: elasticsearch
-  podTemplate:
-    spec:
-      containers:
-        - name: kibana
-          env:
-            - name: ELASTICSEARCH_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: elastic-credentials
-                  key: elastic
-            - name: ELASTICSEARCH_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: elastic-credentials
-                  key: elastic

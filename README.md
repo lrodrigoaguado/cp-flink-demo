@@ -328,8 +328,8 @@ The Flink jobs will start writing alerts to the topic `vehicle-alerts-enriched`,
 First, we prepare the mapping of the index to consider our "ts" field as a date instead of a long:
 
 ```shell
-curl -X PUT "http://elasticsearch-es-http.confluent.svc.cluster.local:9200/_index_template/vehicle-alerts-template" \
-  -u elastic:M933LtK548mRDLkC692Iw8OR \
+curl -X PUT "localhost:9200/_index_template/vehicle-alerts-template" \
+  -u elastic:elastic \
   -H 'Content-Type: application/json' \
   -d '{
     "index_patterns": ["vehicle-alerts-enriched*"],
