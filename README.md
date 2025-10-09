@@ -50,7 +50,7 @@ The entire system runs on Kubernetes and is managed by operators.
 The data flows from the **Datagen source**, through **Kafka**, is processed by **Flink**, and finally lands in the **enriched topic** and **Elasticsearch** for real-time visualization.
 
 <p align="center">
-  <img src="./images/Flink_demo_gen_arch.png" alt="Real-Time Fleet Monitoring Architecture" width="800" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+  <img src="./images/flink_demo_gen_arch.png" alt="Real-Time Fleet Monitoring Architecture" width="800" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
 </p>
 
 <p align="center">
