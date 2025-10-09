@@ -6,6 +6,7 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
   - [Disclaimer](#disclaimer)
   - [What You'll Build](#what-youll-build)
   - [Architecture](#architecture)
+  - [Data flow](#data-flow)
 - [Setup](#setup)
   - [ Prerequisites](#prerequisites)
   - [1. Deploy Kubernetes](#1-deploy-kubernetes)
@@ -55,6 +56,26 @@ The data flows from the **Datagen source**, through **Kafka**, is processed by *
 <p align="center">
   <em>Figure: End-to-end architecture for the real-time fleet monitoring demo.</em>
 </p>
+
+## Data flow
+
+The demo processes fake data simulating a fleet of 150 trucks. For that, the DataGen Connector is used, and feeds three source topics:
+- vehicle_info: receives a real time flow of data representing the engine RPMs and temperature of each truck.
+- vehicle_location: receives a real-time flow of locations where the trucks are (chosen randomly from a predefined set of points).
+- vehicle_description: master table with some data for each car: brand, model, license plate and driver name. It is populated once at the beginning. As it is stored in a compacted topic, in a real life scenario it could receive updates of this information as they happen.
+
+CP Flink is used to process this flow of information as shown in the following diagram:
+
+<p align="center">
+  <img src="./images/flink_demo_data_flow.png" alt="Real-Time Fleet Monitoring Data Flow" width="800" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+</p>
+
+There are three Flink main processes:
+- The first one takes the positions in the vehicle_location topic and calculates the speed of the truck taking into account the last known position and time it took to get to one point to the other. Populates this information into the vehicle_speed topic.
+- The second one takes the measures in the vehicle_info topic and in the vehicle_speed topic and generates alerts if any of the values (temperature, RPMs os speed) is above a certain threshold. Please, be aware that all the data is random and the alerts will not show any consistency. The alerts are populated into the vehicle_alerts topic.
+- Finally, the alerts in the vehicle_alerts topic are joined with the information in the vehicle_description topic in real-time, so that each alert can be attributed to a certain truck or driver. This information is populated into the vehicle_alerts_enriched.
+
+The results are finally sent to Elasticsearch for analysis using Confluent's Elasticsearch Sink Connector. This could be replaced with your analytic system of choice.
 
 # Setup
 
