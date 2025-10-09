@@ -45,36 +45,16 @@ You will create an end-to-end streaming application that simulates a fleet manag
 
 ## Architecture
 
-The entire system runs on Kubernetes and is managed by operators. The data flows from the Datagen source, through Kafka, is processed by Flink, and finally lands in the enriched topic.
+The entire system runs on Kubernetes and is managed by operators.
+The data flows from the **Datagen source**, through **Kafka**, is processed by **Flink**, and finally lands in the **enriched topic** and **Elasticsearch** for real-time visualization.
 
-```mermaid
-graph TD
-    subgraph "Kubernetes Cluster"
+<p align="center">
+  <img src="./images/Flink_demo_gen_arch.png" alt="Real-Time Fleet Monitoring Architecture" width="800" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" />
+</p>
 
-    subgraph "Data Generation (Kafka Connect)"
-        Datagen[DatagenConnector]
-    end
-
-    subgraph "Data Streaming (Kafka)"
-        T1[topic: vehicle-description]
-        T2[topic: vehicle-location]
-        T3[topic: vehicle-info]
-        T4[topic: vehicle-alerts]
-        T5[topic: vehicle-alerts-enriched]
-    end
-
-    subgraph "Stream Processing (Flink)"
-        FlinkApp[Flink SQL Application]
-    end
-
-    Datagen --> T1 & T2 & T3
-    T2 & T3 --> FlinkApp
-    FlinkApp --> T4
-    T1 & T4 --> FlinkApp
-    FlinkApp --> T5
-
-    end
-```
+<p align="center">
+  <em>Figure: End-to-end architecture for the real-time fleet monitoring demo.</em>
+</p>
 
 # Setup
 
