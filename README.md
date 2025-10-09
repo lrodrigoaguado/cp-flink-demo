@@ -1,5 +1,7 @@
 # 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink
 
+> A complete, operator-managed real-time streaming demo on Kubernetes using **Confluent Platform 8.0**, **CP Flink**, and **Elasticsearch** for real-time analytics.
+
 This project demonstrates a complete, real-time data pipeline built on the **Confluent Platform** to ingest and manage data streams, and **CP Flink** to process, analyze, and enrich that data in real-time.
 
 - [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-80-and-cp-flink)
@@ -9,24 +11,25 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
   - [Data flow](#data-flow)
 - [Setup](#setup)
   - [ Prerequisites](#prerequisites)
-  - [1. Deploy Kubernetes](#1-deploy-kubernetes)
-  - [2. Start Confluent Platform](#2-start-confluent-platform)
+  - [🧱 1. Deploy Kubernetes](#-1-deploy-kubernetes)
+  - [⚙️ 2. Start Confluent Platform](#️-2-start-confluent-platform)
     - [Deploy the Operator](#deploy-the-operator)
     - [Configure Security (mTLS)](#configure-security-mtls)
     - [Deploy Confluent Components](#deploy-confluent-components)
     - [Access Control Center](#access-control-center)
-  - [3. Feed test data](#3-feed-test-data)
+  - [💧 3. Feed test data](#-3-feed-test-data)
     - [Create Topics](#create-topics)
     - [Start the Datagen Connector](#start-the-datagen-connector)
-  - [4. Install CP Flink](#4-install-cp-flink)
+  - [🌀 4. Install CP Flink](#-4-install-cp-flink)
     - [Install Prerequities](#install-prerequities)
     - [Install Operators](#install-operators)
     - [Deploy CMF REST Class](#deploy-cmf-rest-class)
-  - [5. Process the data with Flink](#5-process-the-data-with-flink)
+  - [⚡ 5. Process the data with Flink](#-5-process-the-data-with-flink)
     - [Build the Application Image](#build-the-application-image)
     - [Deploy the Flink Application](#deploy-the-flink-application)
-  - [6. Write results to Elasticsearch](#6-write-results-to-elasticsearch)
-  - [6. Cleanup](#6-cleanup)
+  - [🔍 6. Write results to Elasticsearch](#-6-write-results-to-elasticsearch)
+  - [🧹 7. Cleanup](#-7-cleanup)
+
 
 ## Disclaimer
 
@@ -72,7 +75,7 @@ CP Flink is used to process this flow of information as shown in the following d
 
 There are three Flink main processes:
 - The first one takes the positions in the vehicle_location topic and calculates the speed of the truck taking into account the last known position and time it took to get to one point to the other. Populates this information into the vehicle_speed topic.
-- The second one takes the measures in the vehicle_info topic and in the vehicle_speed topic and generates alerts if any of the values (temperature, RPMs os speed) is above a certain threshold. Please, be aware that all the data is random and the alerts will not show any consistency. The alerts are populated into the vehicle_alerts topic.
+- The second one takes the measures in the vehicle_info topic and in the vehicle_speed topic and generates alerts if any of the values (temperature, RPMs or speed) is above a certain threshold. Please, be aware that all the data is random and the alerts will not show any consistency. The alerts are populated into the vehicle_alerts topic.
 - Finally, the alerts in the vehicle_alerts topic are joined with the information in the vehicle_description topic in real-time, so that each alert can be attributed to a certain truck or driver. This information is populated into the vehicle_alerts_enriched.
 
 The results are finally sent to Elasticsearch for analysis using Confluent's Elasticsearch Sink Connector. This could be replaced with your analytic system of choice.
@@ -85,7 +88,7 @@ The following section details a step by step procedure to make the demo work loc
 
 > To run this demo, you'll need a working local environment with kind, helm, kubectl, openssl, and maven.
 
-## 1. Deploy Kubernetes
+## 🧱 1. Deploy Kubernetes
 
 First, create a local Kubernetes cluster using `kind`.
 
@@ -113,7 +116,7 @@ You may need to wait a couple of seconds for dashboard to become available.
 
 </details>
 
-## 2. Start Confluent Platform
+## ⚙️ 2. Start Confluent Platform
 
 Now, let's deploy the core Confluent Platform components using the official Helm chart and Confluent for Kubernetes (CFK) Operator.
 
@@ -180,7 +183,7 @@ kubectl -n confluent port-forward svc/elasticsearch-es-http 9200:9200 > /dev/nul
 
 ```
 
-> **Note:** As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
+> 💡 **Tip:**  As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
 > ```
 > 127.0.0.1     controlcenter-ng.confluent.svc.cluster.local
 > ```
@@ -190,7 +193,7 @@ in you "/etc/hosts" file.
 
 ---
 
-## 3. Feed test data
+## 💧 3. Feed test data
 
 With the platform running, let's create our topics and start generating mock data.
 
@@ -216,7 +219,7 @@ kubectl apply -f data/data_source.yaml
 > **Note:** The `vehicle-description` connector will generate its 151 messages and then stop, entering a `Failed` state. This is expected behavior as its job is just to populate the "master table" once.
 
 
-## 4. Install CP Flink
+## 🌀 4. Install CP Flink
 
 Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apache Flink (CMF).
 
@@ -278,7 +281,7 @@ kubectl get cmfrestclass cmfrestclass -n confluent -oyaml
 
 ---
 
-## 5. Process the data with Flink
+## ⚡ 5. Process the data with Flink
 
 With the full environment ready, it's time to deploy and run our Flink SQL job.
 
@@ -322,7 +325,7 @@ watch kubectl get pods
 
 ---
 
-## 6. Write results to Elasticsearch
+## 🔍 6. Write results to Elasticsearch
 
 The Flink jobs will start writing alerts to the topic `vehicle-alerts-enriched`, and we would like to analyze in real time those alerts. We will use Elasticsearch for that.
 
@@ -360,13 +363,13 @@ curl -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \
   -k
 ```
 
-You should be able to connecto to https://localhost:5601/app/dashboards#/view/edc82d17-8f5b-4112-ae57-04571e41c276?_g=(filters:!()) and use the credentials elastic/elastic to log into Kibana and see the data flowing.
+You should be able to connect to https://localhost:5601/app/dashboards#/view/edc82d17-8f5b-4112-ae57-04571e41c276?_g=(filters:!()) and use the credentials elastic/elastic to log into Kibana and see the data flowing.
 
 ✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 
 ---
 
-## 6. Cleanup
+## 🧹 7. Cleanup
 
 To completely remove the Kubernetes cluster and all its resources, simply run:
 
