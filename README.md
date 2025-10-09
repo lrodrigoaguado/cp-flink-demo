@@ -24,6 +24,7 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
   - [5. Process the data with Flink](#5-process-the-data-with-flink)
     - [Build the Application Image](#build-the-application-image)
     - [Deploy the Flink Application](#deploy-the-flink-application)
+  - [6. Write results to Elasticsearch](#6-write-results-to-elasticsearch)
   - [6. Cleanup](#6-cleanup)
 
 ## Disclaimer
@@ -123,8 +124,10 @@ First, create a `confluent` namespace and install the CFK operator.
 kubectl create namespace confluent
 kubectl config set-context --current --namespace=confluent
 helm repo add confluentinc https://packages.confluent.io/helm
+helm repo add elastic https://helm.elastic.co
 helm repo update
 helm upgrade --install operator confluentinc/confluent-for-kubernetes
+helm install elastic-operator elastic/eck-operator -n confluent
 ```
 
 🔍 **Check Status:** Wait for the operator pod to be in a `Running` state.
@@ -149,12 +152,12 @@ Apply the `infra.yaml` manifest to deploy the entire Confluent Platform. This wi
 
 | Component         | Version | Replicas | Notes                                |
 | ----------------- | ------- | -------- | ------------------------------------ |
-| kRaft Controller  | 8.0.0   | 1        | Manages the Kafka cluster (no ZK)    |
-| Kafka Broker      | 8.0.0   | 3        | The core streaming platform          |
-| Schema Registry   | 8.0.0   | 1        | Manages Avro schemas                 |
-| Kafka Connect     | 8.0.0   | 1        | For data integration (our data source) |
-| REST Proxy        | 8.0.0   | 1        | HTTP access to Kafka                 |
-| Control Center    | 2.2.0   | 1        | The web-based management UI          |
+| kRaft Controller  | 8.0.1   | 1        | Manages the Kafka cluster (no ZK)    |
+| Kafka Broker      | 8.0.1   | 3        | The core streaming platform          |
+| Schema Registry   | 8.0.1   | 1        | Manages Avro schemas                 |
+| Kafka Connect     | 8.0.1   | 1        | For data integration (our data source) |
+| REST Proxy        | 8.0.1   | 1        | HTTP access to Kafka                 |
+| Control Center    | 2.2.1   | 1        | The web-based management UI          |
 
 ```shell
 kubectl apply -f cp/infra.yaml
@@ -167,10 +170,13 @@ watch kubectl -n confluent get pods
 
 ### Access Control Center
 
-Once all the pods are up and running, you can create a port-forward to be able to access the Control Center:
+Once all the pods are up and running, you can create some port-forwards to be able to access the Control Center, Kibana and Elasticsearch:
 
 ```shell
 kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 &
+kubectl -n confluent port-forward svc/kibana-kb-http 5601:5601 > /dev/null 2>&1 &
+kubectl -n confluent port-forward svc/elasticsearch-es-http 9200:9200 > /dev/null 2>&1 &
+
 ```
 
 > **Note:** As HTTPS access is based on the certificates generated at the beginning of the demo, the url to access the Control Center has to match the SAN included in the certificate. In order to be able to reach the Control Center using https://controlcenter-ng.confluent.svc.cluster.local:9021/, you will probably need to include the line
@@ -179,9 +185,7 @@ kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 
 > ```
 in you "/etc/hosts" file.
 
-Once all the pods are up and running, and you have forwarded the port, you can access the Control Center here: https://controlcenter-ng.confluent.svc.cluster.local:9021/
-
-✅ You can now access Confluent Control Center at: **https://controlcenter-ng.confluent.svc.cluster.local:9021/**
+✅ Once all the pods are up and running, and you have forwarded the port, you can now access Confluent Control Center at: **https://controlcenter-ng.confluent.svc.cluster.local:9021/**
 
 ---
 
@@ -230,16 +234,12 @@ watch kubectl get endpoints -n cert-manager cert-manager-webhook
 
 ### Install Operators
 
-Install the Flink Kubernetes Operator:
+Install the Flink Kubernetes Operator and then, with the Operator deployed, now we can deploy Confluent Manager for Apache Flink. It will also have mTLS configured in the file mtls-cmf.yaml, and encryption keys defined, as needed for production use. In case cmf.sql.production=false is defined, no encryption keys are required.:
 
 ```shell
 kubectl config set-context --current --namespace=confluent
 helm upgrade --install cp-flink-kubernetes-operator --version "~1.120.0" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
-```
 
-With the Operator deployed, now we can deploy Confluent Manager for Apache Flink. It will also have mTLS configured in the file mtls-cmf.yaml, and encryption keys defined, as needed for production use. In case cmf.sql.production=false is defined, no encryption keys are required.
-
-```shell
 openssl rand -out ./certs/cmf.key 32
 kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent
 
@@ -308,7 +308,6 @@ And now create our CP Flink environment:
 
 ```shell
 # First, create the Flink Environment
-
 kubectl apply -f flink/flink-environment.yaml
 
 # Then, deploy the application
@@ -319,6 +318,38 @@ kubectl apply -f flink/flink-application.yaml
 ```shell
 watch kubectl get pods
 ```
+
+---
+
+## 6. Write results to Elasticsearch
+
+The Flink jobs will start writing alerts to the topic `vehicle-alerts-enriched`, and we would like to analyze in real time those alerts. We will use Elasticsearch for that.
+
+First, we prepare the mapping of the index to consider our "ts" field as a date instead of a long:
+
+```shell
+curl -X PUT "http://elasticsearch-es-http.confluent.svc.cluster.local:9200/_index_template/vehicle-alerts-template" \
+  -u elastic:M933LtK548mRDLkC692Iw8OR \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "index_patterns": ["vehicle-alerts-enriched*"],
+    "template": {
+      "mappings": {
+        "properties": {
+          "ts": { "type": "date", "format": "epoch_millis" }
+        }
+      }
+    }
+  }'
+```
+
+and once that is ready, we start a Elasticsearch Sink Connector that will write the contents of that topic to an Elasticsearch index:
+
+```shell
+kubectl apply -f data/data_sink.yaml
+```
+
+You should be able to connecto to http://localhost:5601 and use the credentials elastic/elastic to log into Kibana and see the data flowing.
 
 ✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 

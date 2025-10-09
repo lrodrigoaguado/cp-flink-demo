@@ -42,7 +42,7 @@ keytool -noprompt -importcert \
 
 # --- 2. Component Certificate Generation ---
 # Loop through each component to generate its keystore and truststore
-for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1
+for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1 elasticsearch-es-http
 do
   echo ""
   echo "------------------------------- $i -------------------------------"
@@ -166,7 +166,7 @@ do
   echo "✅ PEM certificates generated for $i in directory: $i/"
 done
 
-for i in kraftcontroller kafka connect schemaregistry cmf prometheus-client alertmanager-client prometheus alertmanager controlcenter-ng cmfrestclass krp connector flink-app1
+for i in kraftcontroller kafka connect schemaregistry cmf prometheus-client alertmanager-client prometheus alertmanager controlcenter-ng cmfrestclass krp connector flink-app1 elasticsearch-es-http
 do
   cp global.truststore.jks ./$i/$i.truststore.jks
 done

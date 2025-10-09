@@ -79,37 +79,8 @@ CREATE TABLE vehicle_info (
   'avro-confluent.ssl.keystore.password' = 'confluent'
 );
 
+
 -- 2. Calculate the speed of each vehicle using the difference in time and location and generate alerts for those vehicles that travel over 120 km/h
--- CREATE TABLE vehicle_speed (
---   `vehicle_id` INT,
---   `latitude` DOUBLE,
---   `longitude` DOUBLE,
---   `prev_latitude` DOUBLE,
---   `prev_longitude` DOUBLE,
---   `ts` BIGINT,
---   `prev_ts` BIGINT,
---   `speed_kmh` DOUBLE,
---   PRIMARY KEY (vehicle_id) NOT ENFORCED
--- ) WITH (
---   'connector' = 'upsert-kafka',
---   'topic' = 'vehicle-speed',
---   'key.format' = 'json',
---   'value.format' = 'avro-confluent',
---   'properties.bootstrap.servers' = 'kafka.confluent.svc.cluster.local:9071',
---   'properties.security.protocol' = 'SSL',
---   'properties.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
---   'properties.ssl.truststore.password' = 'confluent',
---   'properties.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
---   'properties.ssl.keystore.password' = 'confluent',
---   'properties.ssl.key.password' = 'confluent',
---   'value.avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
---   'value.avro-confluent.subject' = 'EnrichedEvents-value',
---   'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
---   'value.avro-confluent.ssl.truststore.password' = 'confluent',
---   'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
---   'value.avro-confluent.ssl.keystore.password' = 'confluent'
--- );
--- INSERT INTO vehicle_speed
 CREATE VIEW vehicle_speed AS
 SELECT
   vehicle_id,
@@ -174,7 +145,8 @@ CREATE TABLE vehicle_alerts (
   'value.avro-confluent.ssl.keystore.password' = 'confluent'
 );
 
--- 3. Enrich alerts data with description and sensor readings
+
+-- 4. Enrich alerts data with description and sensor readings
 CREATE TABLE enriched_alerts (
   `vehicle_id` INT,
   `alert_type` STRING,
@@ -199,7 +171,6 @@ CREATE TABLE enriched_alerts (
   'properties.ssl.keystore.password' = 'confluent',
   'properties.ssl.key.password' = 'confluent',
   'value.avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
-  'value.avro-confluent.subject' = 'EnrichedAlerts-value',
   'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
   'value.avro-confluent.ssl.truststore.password' = 'confluent',
   'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',

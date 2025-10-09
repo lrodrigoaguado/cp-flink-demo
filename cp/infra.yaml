@@ -6,8 +6,8 @@ metadata:
 spec:
   dataVolumeCapacity: 2G
   image:
-    application: confluentinc/cp-server:8.0.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-server:8.0.1
+    init: confluentinc/confluent-init-container:3.0.1
   listeners:
     controller:
       tls:
@@ -15,7 +15,7 @@ spec:
       authentication:
         type: mtls
         principalMappingRules:
-          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+          - RULE:.*CN=([a-zA-Z0-9._-]*).*$/$1/,DEFAULT
   tls:
     secretRef: kraftcontroller-tls
   replicas: 1
@@ -69,8 +69,8 @@ spec:
         memory: 512Mi
         cpu: 200m
   image:
-    application: confluentinc/cp-server:8.0.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-server:8.0.1
+    init: confluentinc/confluent-init-container:3.0.1
   dataVolumeCapacity: 10Gi
   tls:
     secretRef: kafka-tls
@@ -79,14 +79,14 @@ spec:
       authentication:
         type: mtls
         principalMappingRules:
-          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+          - RULE:.*CN=([a-zA-Z0-9._-]*).*$/$1/,DEFAULT
       tls:
         enabled: true
     external:
       authentication:
         type: mtls
         principalMappingRules:
-          - RULE:.*CN[\\s]?=[\\s]?([a-zA-Z0-9.]*)?.*/$1/
+          - RULE:.*CN=([a-zA-Z0-9._-]*).*$/$1/,DEFAULT
       tls:
         enabled: true
   dependencies:
@@ -139,8 +139,8 @@ spec:
         memory: 256Mi
         cpu: 100m
   image:
-    application: confluentinc/cp-schema-registry:8.0.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-schema-registry:8.0.1
+    init: confluentinc/confluent-init-container:3.0.1
   tls:
     secretRef: schemaregistry-tls
   authentication:
@@ -177,8 +177,8 @@ spec:
       readiness:
         initialDelaySeconds: 240
   image:
-    application: confluentinc/cp-server-connect:8.0.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-server-connect:8.0.1
+    init: confluentinc/confluent-init-container:3.0.1
   tls:
     secretRef: connect-tls
   authentication:
@@ -191,6 +191,9 @@ spec:
           - name: kafka-connect-datagen
             owner: confluentinc
             version: 0.6.7
+          - name: kafka-connect-elasticsearch
+            owner: confluentinc
+            version: 14.1.5
   dependencies:
     kafka:
       bootstrapEndpoint: kafka.confluent.svc.cluster.local:9071
@@ -215,8 +218,8 @@ metadata:
   namespace: confluent
 spec:
   image:
-    application: confluentinc/cp-kafka-rest:8.0.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-kafka-rest:8.0.1
+    init: confluentinc/confluent-init-container:3.0.1
   replicas: 1
   tls:
     secretRef: krp-tls
@@ -264,8 +267,8 @@ spec:
         memory: 1024Mi
         cpu: 200m
   image:
-    application: confluentinc/cp-enterprise-control-center-next-gen:2.2.0
-    init: confluentinc/confluent-init-container:3.0.0
+    application: confluentinc/cp-enterprise-control-center-next-gen:2.2.1
+    init: confluentinc/confluent-init-container:3.0.1
   dataVolumeCapacity: 10Gi
   tls:
     secretRef: controlcenter-ng-tls
@@ -307,7 +310,7 @@ spec:
         enabled: true
   services:
     prometheus:
-       image: confluentinc/cp-enterprise-prometheus:2.2.0
+       image: confluentinc/cp-enterprise-prometheus:2.2.1
        authentication:
          type: mtls
        tls:
@@ -315,7 +318,7 @@ spec:
        pvc:
          dataVolumeCapacity: 10Gi
     alertmanager:
-       image: confluentinc/cp-enterprise-alertmanager:2.2.0
+       image: confluentinc/cp-enterprise-alertmanager:2.2.1
        authentication:
          type: mtls
        tls:
@@ -332,5 +335,63 @@ spec:
       - confluent.controlcenter.cmf.ssl.truststore.type=jks
       - confluent.controlcenter.cmf.ssl.key.password=confluent
       - sni.host.check.enabled=False
+      - confluent.controlcenter.connect.cluster=connect|https://connect.confluent.svc.cluster.local:8083
   mountedSecrets:
   - secretRef: cmf-tls
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: elastic-credentials
+  namespace: confluent
+type: Opaque
+stringData:
+  elastic: elastic
+---
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elasticsearch
+  namespace: confluent
+spec:
+  version: 8.15.3
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true     # disables TLS, makes ES HTTP plain (http://)
+  nodeSets:
+    - name: default
+      count: 1
+      config:
+        node.store.allow_mmap: false
+        logger.org.elasticsearch.rest: "DEBUG"
+        logger.org.elasticsearch.action: "DEBUG"
+  auth:
+    fileRealm:
+      - secretName: elastic-credentials
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana
+  namespace: confluent
+spec:
+  version: 8.15.3
+  count: 1
+  elasticsearchRef:
+    name: elasticsearch
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          env:
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-credentials
+                  key: elastic
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-credentials
+                  key: elastic

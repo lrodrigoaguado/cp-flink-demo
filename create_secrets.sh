@@ -4,7 +4,7 @@
 set -o nounset \
     -o errexit
 
-for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1
+for i in kraftcontroller kafka connect schemaregistry cmf krp flink-app1 elasticsearch-es-http
 do
 
   kubectl create secret generic $i-tls \
