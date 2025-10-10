@@ -25,8 +25,8 @@ spec:
         memory: 768Mi
         cpu: 200m
       requests:
-        memory: 512Mi
-        cpu: 100m
+        memory: 256Mi
+        cpu: 75m
   dependencies:
     metricsClient:
       url: https://controlcenter-ng.confluent.svc.cluster.local:9090
@@ -210,6 +210,9 @@ spec:
   configOverrides:
     server:
       - "sni.host.check.enabled=false"
+      - "offset.storage.replication.factor=1"
+      - "config.storage.replication.factor=1"
+      - "status.storage.replication.factor=1"
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaRestProxy
@@ -336,6 +339,7 @@ spec:
       - confluent.controlcenter.cmf.ssl.key.password=confluent
       - sni.host.check.enabled=False
       - confluent.controlcenter.connect.cluster=connect|https://connect.confluent.svc.cluster.local:8083
+      - confluent.controlcenter.internal.topics.replication=1
   mountedSecrets:
   - secretRef: cmf-tls
 ---
@@ -362,6 +366,13 @@ spec:
   nodeSets:
     - name: default
       count: 1
+      podTemplate:
+        spec:
+          containers:
+          - name: elasticsearch
+            env:
+            - name: ES_JAVA_OPTS
+              value: "-Xms256m -Xmx256m"
       config:
         node.store.allow_mmap: false
         logger.org.elasticsearch.rest: "DEBUG"
@@ -380,3 +391,10 @@ spec:
   count: 1
   elasticsearchRef:
     name: elasticsearch
+  podTemplate:
+    spec:
+      containers:
+      - name: kibana
+        env:
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=512"

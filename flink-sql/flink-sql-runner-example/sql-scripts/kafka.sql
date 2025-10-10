@@ -30,7 +30,7 @@ CREATE TABLE vehicle_location (
   `location` ROW<latitude DOUBLE, longitude DOUBLE>,
   `ts` BIGINT,
   `event_time` AS TO_TIMESTAMP_LTZ(ts, 3),
-  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND
+  WATERMARK FOR event_time AS event_time - INTERVAL '1' SECOND
 ) WITH (
   'connector' = 'kafka',
   'topic' = 'vehicle-location',
@@ -38,7 +38,7 @@ CREATE TABLE vehicle_location (
   'properties.group.id' = 'flink-sql-job',
   'format' = 'avro-confluent',
   'scan.startup.mode' = 'earliest-offset',
-  'scan.watermark.idle-timeout' = '20 seconds',
+  'scan.watermark.idle-timeout' = '5 seconds',
   'avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
   'properties.security.protocol' = 'SSL',
   'properties.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
@@ -142,7 +142,9 @@ CREATE TABLE vehicle_alerts (
   'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
   'value.avro-confluent.ssl.truststore.password' = 'confluent',
   'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'value.avro-confluent.ssl.keystore.password' = 'confluent'
+  'value.avro-confluent.ssl.keystore.password' = 'confluent',
+  'sink.buffer-flush.max-rows' = '1',
+  'sink.buffer-flush.interval' = '1 s'
 );
 
 
@@ -174,11 +176,13 @@ CREATE TABLE enriched_alerts (
   'value.avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
   'value.avro-confluent.ssl.truststore.password' = 'confluent',
   'value.avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'value.avro-confluent.ssl.keystore.password' = 'confluent'
+  'value.avro-confluent.ssl.keystore.password' = 'confluent',
+  'sink.buffer-flush.max-rows' = '1',
+  'sink.buffer-flush.interval' = '1 s'
 );
 
 
-
+SET 'parallelism.default' = '2';
 EXECUTE STATEMENT SET
 BEGIN
 

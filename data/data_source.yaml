@@ -385,8 +385,8 @@ spec:
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
-    max.interval: "50"
-    iterations: "300000"
+    max.interval: "100"
+    iterations: "-1"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
@@ -477,7 +477,7 @@ spec:
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
     max.interval: "100"
-    iterations: "300000"
+    iterations: "-1"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks

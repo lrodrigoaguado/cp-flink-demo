@@ -47,3 +47,7 @@ spec:
     value.converter.schema.registry.ssl.keystore.location: "/mnt/sslcerts/keystore.jks"
     value.converter.schema.registry.ssl.keystore.password: "confluent"
     value.converter.schema.registry.ssl.key.password: "confluent"
+
+    linger.ms: "10"
+    batch.size: "1"
+    flush.timeout.ms: "5000"
