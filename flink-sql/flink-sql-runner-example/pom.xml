@@ -98,6 +98,18 @@ under the License.
             <version>${log4j.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Flink JDBC connector -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-jdbc</artifactId>
+            <version>3.2.0-1.19</version>
+        </dependency>
+        <!-- Postgres JDBC driver for JDBC connector table access -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
     </dependencies>
 
     <build>

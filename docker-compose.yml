@@ -1,0 +1,32 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    container_name: vehicles-postgres
+    environment:
+      POSTGRES_DB: vehicles
+      POSTGRES_USER: vehicles
+      POSTGRES_PASSWORD: vehicles
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vehicles"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: vehicles-adminer
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: vehicles-net
