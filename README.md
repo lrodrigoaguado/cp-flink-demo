@@ -312,7 +312,7 @@ kind load docker-image flink-sql-runner-example:latest
 cd ../..
 ```
 
-### Deploy the Flink Application - SHOW TIME
+### Deploy the Flink Application
 
 The Flink application is defined declaratively. It will perform the following steps:
 
