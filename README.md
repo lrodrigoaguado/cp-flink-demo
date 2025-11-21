@@ -39,8 +39,8 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
 
 You will create an end-to-end streaming application that simulates a fleet management system. The pipeline will:
 
-1.  **Generate** mock vehicle data (location, engine stats, and descriptions) using Kafka Connect.
-2.  **Ingest** this data into multiple Kafka topics.
+1.  **Generate** mock vehicle data (location & engine stats) using Kafka Connect Datagen.
+2.  **Load** a static vehicle description dimension table in Postgres and publish it optionally via a JDBC Source Connector.
 3.  **Process** the streams with a Flink SQL application to:
     * Calculate the real-time speed of each vehicle.
     * Detect alert-worthy conditions (e.g., speeding, overheating).
@@ -62,10 +62,10 @@ The data flows from the **Datagen source**, through **Kafka**, is processed by *
 
 ## Data flow
 
-The demo processes fake data simulating a fleet of 150 trucks. For that, the DataGen Connector is used, and feeds three source topics:
-- vehicle_info: receives a real time flow of data representing the engine RPMs and temperature of each truck.
-- vehicle_location: receives a real-time flow of locations where the trucks are (chosen randomly from a predefined set of points).
-- vehicle_description: master table with some data for each car: brand, model, license plate and driver name. It is populated once at the beginning. As it is stored in a compacted topic, in a real life scenario it could receive updates of this information as they happen.
+The demo processes fake data simulating a fleet of 150 trucks. Two Kafka topics are continuously populated by Datagen and a third (reference) dataset is stored in Postgres:
+- `vehicle-info`: real time engine RPM and temperature readings.
+- `vehicle-location`: real time vehicle coordinates (sampled from predefined points).
+- `vehicle_description`: a static dimension table (150 rows) residing in Postgres. Flink now accesses it directly via the JDBC connector for enrichment. A JDBC Source Connector may also publish it into a Kafka topic (`vehicle-vehicle_description`) if desired, but the enrichment path uses the database directly.
 
 CP Flink is used to process this flow of information as shown in the following diagram:
 
@@ -76,7 +76,7 @@ CP Flink is used to process this flow of information as shown in the following d
 There are three Flink main processes:
 - The first one takes the positions in the vehicle_location topic and calculates the speed of the truck taking into account the last known position and time it took to get to one point to the other. Populates this information into the vehicle_speed topic.
 - The second one takes the measures in the vehicle_info topic and in the vehicle_speed topic and generates alerts if any of the values (temperature, RPMs or speed) is above a certain threshold. Please, be aware that all the data is random and the alerts will not show any consistency. The alerts are populated into the vehicle_alerts topic.
-- Finally, the alerts in the vehicle_alerts topic are joined with the information in the vehicle_description topic in real-time, so that each alert can be attributed to a certain truck or driver. This information is populated into the vehicle_alerts_enriched.
+- Finally, the alerts in the vehicle_alerts topic are joined with the information in the Postgres `vehicle_description` table (via JDBC lookup) in real-time, so that each alert can be attributed to a certain truck or driver. This information is populated into the vehicle_alerts_enriched.
 
 The results are finally sent to Elasticsearch for analysis using Confluent's Elasticsearch Sink Connector. This could be replaced with your analytic system of choice.
 
@@ -197,26 +197,39 @@ in you "/etc/hosts" file.
 
 With the platform running, let's create our topics and start generating mock data.
 
-### Create Topics
+### Create Topics & Start Postgres
+
+Start the local Postgres instance (contains the `vehicle_description` dimension table seeded with 150 vehicles):
+
+```shell
+docker compose -f data/db/docker-compose.yml up -d --force-recreate
+```
+
+Check readiness:
+```shell
+docker compose -f data/db/docker-compose.yml ps
+```
+
+Then create the streaming topics:
 
 ```shell
 kubectl apply -f data/topics.yaml
 ```
 
-### Start the Datagen Connector
+### Start the Connectors
 
-For the demo, we will use the DatagenConnector in the Connect cluster to generate mock data. In this case the generated data will simulate a fleet of 150 trucks. Run:
+Apply the connector manifest (Datagen for location & info; JDBC Source optional for description):
 
 ```shell
 kubectl apply -f data/data_source.yaml
 ```
 
-🔍 **Check Status:** You can go to Control Center to see the data flowing into the following topics:
-* `vehicle-description`: A master table with vehicle details (brand, driver, etc.).
-* `vehicle-location`: A continuous stream of vehicle coordinates.
-* `vehicle-info`: A continuous stream of engine temperature and RPM readings.
+🔍 **Check Status:** In Control Center you should see:
+* `vehicle-location`: continuous coordinate stream.
+* `vehicle-info`: continuous engine stats stream.
+* (Optional) `vehicle-vehicle_description`: snapshot of Postgres dimension table if the JDBC Source Connector is enabled.
 
-> **Note:** The `vehicle-description` connector will generate its 151 messages and then stop, entering a `Failed` state. This is expected behavior as its job is just to populate the "master table" once.
+> **Note:** The JDBC Source runs in bulk mode for the static dimension and will republish on schedule; Flink enrichment uses the table directly via JDBC, so Kafka publication is optional.
 
 
 ## 🌀 4. Install CP Flink
@@ -305,7 +318,7 @@ The Flink application is defined declaratively. It will perform the following st
 
 1.  Calculates the real-time speed of each truck based on its location data.
 2.  Generates an alert if a truck exceeds a threshold for speed (>120 km/h), engine temperature (>210°C), or RPMs (>7500).
-3.  Enriches these alerts by joining them with the `vehicle-description` table to add the driver's name, vehicle brand, and license plate.
+3.  Enriches these alerts by joining them with the Postgres `vehicle_description` table (JDBC lookup) to add the driver's name, vehicle brand, and license plate.
 4.  Writes the final, enriched alerts to the `vehicle-alerts-enriched` topic.
 
 And now create our CP Flink environment:
@@ -375,4 +388,10 @@ To completely remove the Kubernetes cluster and all its resources, simply run:
 
 ```shell
 kind delete cluster
+```
+
+Stop and remove the Postgres containers:
+
+```shell
+docker compose -f data/db/docker-compose.yml down -v
 ```

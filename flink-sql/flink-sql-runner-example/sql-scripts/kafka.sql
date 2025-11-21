@@ -1,28 +1,24 @@
 -- 1. Register Kafka topics as Flink tables
+-- Dimension table sourced from Postgres via JDBC connector
 CREATE TABLE vehicle_description (
   `vehicle_id` INT,
   `vehicle_brand` STRING,
   `driver_name` STRING,
   `license_plate` STRING
 ) WITH (
-  'connector' = 'kafka',
-  'topic' = 'vehicle-description',
-  'properties.bootstrap.servers' = 'kafka.confluent.svc.cluster.local:9071',
-  'properties.group.id' = 'flink-sql-job',
-  'scan.startup.mode' = 'earliest-offset',
-  'format' = 'avro-confluent',
-  'avro-confluent.url' = 'https://schemaregistry.confluent.svc.cluster.local:8081',
-  'properties.security.protocol' = 'SSL',
-  'properties.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
-  'properties.ssl.truststore.password' = 'confluent',
-  'properties.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'properties.ssl.keystore.password' = 'confluent',
-  'properties.ssl.key.password' = 'confluent',
-  'properties.ssl.endpoint.identification.algorithm' = '',
-  'avro-confluent.ssl.truststore.location' = '/mnt/secrets/flink-app1-tls/truststore.jks',
-  'avro-confluent.ssl.truststore.password' = 'confluent',
-  'avro-confluent.ssl.keystore.location' = '/mnt/secrets/flink-app1-tls/keystore.jks',
-  'avro-confluent.ssl.keystore.password' = 'confluent'
+  'connector' = 'jdbc',
+  'url' = 'jdbc:postgresql://host.docker.internal:5432/vehicles',
+  'table-name' = 'vehicle_description',
+  'username' = 'vehicles',
+  'password' = 'vehicles',
+  'driver' = 'org.postgresql.Driver',
+  'scan.fetch-size' = '200',
+  'scan.partition.column' = 'vehicle_id',
+  'scan.partition.lower-bound' = '0',
+  'scan.partition.upper-bound' = '149',
+  'scan.partition.num' = '5',
+  'lookup.cache.max-rows' = '200',
+  'lookup.cache.ttl' = '600 s'
 );
 
 CREATE TABLE vehicle_location (
