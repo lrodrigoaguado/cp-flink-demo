@@ -33,9 +33,9 @@ under the License.
     <!-- Given that this is an example skip maven deployment -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <flink.version>1.19.1</flink.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <log4j.version>2.23.1</log4j.version>
+        <flink.version>1.20.2</flink.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <log4j.version>2.25.2</log4j.version>
     </properties>
 
     <dependencies>
@@ -57,7 +57,7 @@ under the License.
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>3.3.0-1.19</version>
+            <version>3.3.0-1.20</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -69,7 +69,7 @@ under the License.
                 <artifactId>jackson-bom</artifactId>
                 <type>pom</type>
                 <scope>import</scope>
-                <version>2.15.0</version>
+                <version>2.20.1</version>
         </dependency>
 
         <!-- Add logging framework, to produce console output when running in the IDE. -->
@@ -102,7 +102,7 @@ under the License.
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-jdbc</artifactId>
-            <version>3.2.0-1.19</version>
+            <version>3.3.0-1.20</version>
         </dependency>
         <!-- Postgres JDBC driver for JDBC connector table access -->
         <dependency>

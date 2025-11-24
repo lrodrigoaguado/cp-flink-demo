@@ -16,7 +16,7 @@
 # limitations under the License.
 ################################################################################
 
-FROM confluentinc/cp-flink:1.19.1-cp1
+FROM confluentinc/cp-flink:1.20.2-cp1-java17
 
 RUN mkdir /opt/flink/usrlib
 ADD target/flink-sql-runner-example-*.jar /opt/flink/usrlib/sql-runner.jar
