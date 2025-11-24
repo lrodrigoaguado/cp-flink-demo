@@ -1,10 +1,10 @@
-# 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink
+# 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.1 and CP Flink
 
-> A complete, operator-managed real-time streaming demo on Kubernetes using **Confluent Platform 8.0**, **CP Flink**, and **Elasticsearch** for real-time analytics.
+> A complete, operator-managed real-time streaming demo on Kubernetes using **Confluent Platform 8.1**, **CP Flink**, and **Elasticsearch** for real-time analytics.
 
 This project demonstrates a complete, real-time data pipeline built on the **Confluent Platform** to ingest and manage data streams, and **CP Flink** to process, analyze, and enrich that data in real-time.
 
-- [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.0 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-80-and-cp-flink)
+- [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.1 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-81-and-cp-flink)
   - [Disclaimer](#disclaimer)
   - [What You'll Build](#what-youll-build)
   - [Architecture](#architecture)
@@ -18,8 +18,8 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
     - [Deploy Confluent Components](#deploy-confluent-components)
     - [Access Control Center](#access-control-center)
   - [💧 3. Feed test data](#-3-feed-test-data)
-    - [Create Topics](#create-topics)
-    - [Start the Datagen Connector](#start-the-datagen-connector)
+    - [Create Topics \& Start Postgres](#create-topics--start-postgres)
+    - [Start the Connectors](#start-the-connectors)
   - [🌀 4. Install CP Flink](#-4-install-cp-flink)
     - [Install Prerequities](#install-prerequities)
     - [Install Operators](#install-operators)
@@ -156,12 +156,12 @@ Apply the `infra.yaml` manifest to deploy the entire Confluent Platform. This wi
 
 | Component         | Version | Replicas | Notes                                |
 | ----------------- | ------- | -------- | ------------------------------------ |
-| kRaft Controller  | 8.0.1   | 1        | Manages the Kafka cluster (no ZK)    |
-| Kafka Broker      | 8.0.1   | 3        | The core streaming platform          |
-| Schema Registry   | 8.0.1   | 1        | Manages Avro schemas                 |
-| Kafka Connect     | 8.0.1   | 1        | For data integration (our data source) |
-| REST Proxy        | 8.0.1   | 1        | HTTP access to Kafka                 |
-| Control Center    | 2.2.1   | 1        | The web-based management UI          |
+| kRaft Controller  | 8.1.0   | 1        | Manages the Kafka cluster (no ZK)    |
+| Kafka Broker      | 8.1.0   | 3        | The core streaming platform          |
+| Schema Registry   | 8.1.0   | 1        | Manages Avro schemas                 |
+| Kafka Connect     | 8.1.0   | 1        | For data integration (our data source) |
+| REST Proxy        | 8.1.0   | 1        | HTTP access to Kafka                 |
+| Control Center    | 2.2.2   | 1        | The web-based management UI          |
 
 ```shell
 kubectl apply -f cp/infra.yaml
@@ -241,8 +241,8 @@ Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apa
 Install certificate manager, a requirement for the Flink Operator:
 
 ```shell
-kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
-````
+kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.18.2/cert-manager.yaml
+```
 🔍 **Check Status:** Wait until an endpoint IP is assigned when executing the following
 
 ```shell
@@ -255,12 +255,13 @@ Install the Flink Kubernetes Operator and then, with the Operator deployed, now 
 
 ```shell
 kubectl config set-context --current --namespace=confluent
-helm upgrade --install cp-flink-kubernetes-operator --version "~1.120.0" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
+helm upgrade --install cp-flink-kubernetes-operator --version "~1.130.1" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
 
 openssl rand -out ./certs/cmf.key 32
 kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent
 
 helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-for-apache-flink \
+    --version "~2.1.0" \
     --set cmf.logging.level.root=debug \
     --set cmf.sql.production=true \
     --set encryption.key.kubernetesSecretName=cmf-encryption-key \
