@@ -62,7 +62,7 @@
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-streaming-java</artifactId>
-      <version>1.20.2</version>
+      <version>2.1.0</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -78,10 +78,6 @@
           <groupId>org.apache.flink</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>flink-java</artifactId>
-          <groupId>org.apache.flink</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>flink-shaded-guava</artifactId>
           <groupId>org.apache.flink</groupId>
         </exclusion>
@@ -89,16 +85,12 @@
           <artifactId>commons-math3</artifactId>
           <groupId>org.apache.commons</groupId>
         </exclusion>
-        <exclusion>
-          <artifactId>flink-connector-datagen</artifactId>
-          <groupId>org.apache.flink</groupId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-table-api-java</artifactId>
-      <version>1.20.2</version>
+      <version>2.1.0</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -143,6 +135,6 @@
     <slf4j.version>2.0.17</slf4j.version>
     <log4j.version>2.25.2</log4j.version>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <flink.version>1.20.2</flink.version>
+    <flink.version>2.1.0</flink.version>
   </properties>
 </project>
