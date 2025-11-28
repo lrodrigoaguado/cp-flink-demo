@@ -33,7 +33,7 @@ under the License.
     <!-- Given that this is an example skip maven deployment -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <flink.version>1.20.2</flink.version>
+        <flink.version>2.1.0</flink.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.version>2.25.2</log4j.version>
     </properties>
@@ -57,7 +57,7 @@ under the License.
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>3.3.0-1.20</version>
+            <version>4.0.1-2.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -101,8 +101,13 @@ under the License.
         <!-- Flink JDBC connector -->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-jdbc</artifactId>
-            <version>3.3.0-1.20</version>
+            <artifactId>flink-connector-jdbc-core</artifactId>
+            <version>4.0.0-2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-connector-jdbc-postgres</artifactId>
+            <version>4.0.0-2.0</version>
         </dependency>
         <!-- Postgres JDBC driver for JDBC connector table access -->
         <dependency>
