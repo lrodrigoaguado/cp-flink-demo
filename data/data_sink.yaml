@@ -18,7 +18,7 @@ spec:
   configs:
     name: "elastic-sink"
     connector.class: "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector"
-    topics: "vehicle-alerts-enriched"
+    topics: "vehicle-alerts-enriched, vehicle-location"
 
     # --- Connection ---
     connection.url: "http://elasticsearch-es-http.confluent.svc.cluster.local:9200"

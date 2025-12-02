@@ -1,0 +1,368 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vehicle-data-generator-script
+  namespace: confluent
+data:
+  generate_data.py: |
+    import time
+    import json
+    import random
+    import socket
+    import os
+    import math
+    import sys
+    from datetime import datetime, timedelta
+
+    # Install dependencies if not present
+    import subprocess
+    try:
+        import confluent_kafka
+        from confluent_kafka import SerializingProducer
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        from confluent_kafka.schema_registry.avro import AvroSerializer
+        from confluent_kafka.serialization import StringSerializer
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "confluent-kafka[avro]", "fastavro"])
+        import confluent_kafka
+        from confluent_kafka import SerializingProducer
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        from confluent_kafka.schema_registry.avro import AvroSerializer
+        from confluent_kafka.serialization import StringSerializer
+
+    # Configuration
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka.confluent.svc.cluster.local:9071')
+    SCHEMA_REGISTRY_URL = os.environ.get('SCHEMA_REGISTRY_URL', 'https://schemaregistry.confluent.svc.cluster.local:8081')
+    TOPIC_NAME = 'vehicle-location'
+    ROAD_POINTS_FILE = os.environ.get('ROAD_POINTS_FILE', '/etc/road-data/road_points.json')
+    PUBLISH_INTERVAL_SEC = 1  # Publish every 1 second
+
+    # Simulation Configuration
+    START_TIMESTAMP = datetime(2025, 1, 1, 9, 0, 0)  # 2025-01-01 09:00:00
+    NUM_VEHICLES = 50  # Number of trucks in the fleet
+    SPEED_MEAN = 110  # km/h - most probable speed
+    SPEED_STD = 15    # Standard deviation for normal distribution
+    SPEED_MIN = 80    # km/h - minimum speed
+    SPEED_MAX = 140   # km/h - maximum speed
+
+    # SSL Configuration paths (mounted in pod)
+    TRUSTSTORE_LOCATION = '/mnt/secrets/connect-tls/truststore.jks'
+    KEYSTORE_LOCATION = '/mnt/secrets/connect-tls/keystore.jks'
+    CA_LOCATION = '/mnt/secrets/connector-tls/cacerts.pem'
+    CERTIFICATE_LOCATION = '/mnt/secrets/connector-tls/fullchain.pem'
+    KEY_LOCATION = '/mnt/secrets/connector-tls/privkey.pem'
+    PASSWORD = 'confluent'
+
+    # Avro Schema
+    SCHEMA_STR = """
+    {
+        "namespace": "fleet_mgmt",
+        "name": "fleet_mgmt_location",
+        "type": "record",
+        "fields": [
+            {
+                "name": "vehicle_id",
+                "type": "int"
+            },
+            {
+                "name": "location",
+                "type": {
+                    "type": "record",
+                    "name": "location",
+                    "fields": [
+                        {
+                            "name": "lat",
+                            "type": "double"
+                        },
+                        {
+                            "name": "lon",
+                            "type": "double"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "ts",
+                "type": {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                }
+            }
+        ]
+    }
+    """
+
+    def get_producer():
+        schema_registry_conf = {
+            'url': SCHEMA_REGISTRY_URL,
+            'ssl.ca.location': CA_LOCATION,
+            'ssl.certificate.location': CERTIFICATE_LOCATION,
+            'ssl.key.location': KEY_LOCATION
+        }
+        schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+        avro_serializer = AvroSerializer(schema_registry_client, SCHEMA_STR)
+
+        producer_conf = {
+            'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
+            'client.id': socket.gethostname(),
+            'security.protocol': 'SSL',
+            'ssl.ca.location': CA_LOCATION,
+            'ssl.certificate.location': CERTIFICATE_LOCATION,
+            'ssl.key.location': KEY_LOCATION,
+            'key.serializer': StringSerializer('utf_8'),
+            'value.serializer': avro_serializer
+        }
+
+        return SerializingProducer(producer_conf)
+
+    def haversine_distance(lat1, lon1, lat2, lon2):
+        """Calculate distance in kilometers between two points."""
+        R = 6371  # Earth radius in km
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+
+        a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
+        c = 2*math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
+
+    def generate_speed():
+        """Generate speed following normal distribution, clamped to min/max."""
+        speed = random.gauss(SPEED_MEAN, SPEED_STD)
+        return max(SPEED_MIN, min(SPEED_MAX, speed))
+
+    def load_routes(file_path):
+        """Load road points from JSON file."""
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+
+            # Ensure points are sorted by km
+            for road in data:
+                data[road].sort(key=lambda p: p.get('km', 0))
+
+            print(f"Loaded road points from {file_path}")
+            for road, points in data.items():
+                print(f"  {road}: {len(points)} points")
+
+            return data
+        except FileNotFoundError:
+            print(f"ERROR: Road points file not found: {file_path}")
+            print("Using fallback empty routes")
+            return {}
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Failed to parse JSON from {file_path}: {e}")
+            return {}
+
+    class Vehicle:
+        def __init__(self, vehicle_id, routes):
+            self.vehicle_id = vehicle_id
+            self.routes = routes
+
+            # Randomly select a road
+            available_roads = [r for r in routes.keys() if len(routes[r]) > 1]
+            if not available_roads:
+                print(f"WARNING: No valid routes available for vehicle {vehicle_id}")
+                self.route = []
+                self.road_name = "NONE"
+            else:
+                self.road_name = random.choice(available_roads)
+                self.route = routes[self.road_name]
+
+            # Random starting position on the route
+            self.current_index = random.randint(0, max(0, len(self.route) - 1))
+
+            # Generate speed for this vehicle (km/h) - stays constant for the vehicle
+            self.speed_kmh = generate_speed()
+
+            # Direction: 1 for forward, -1 for backward
+            self.direction = random.choice([1, -1])
+
+            # Current timestamp for this vehicle
+            self.current_time = START_TIMESTAMP + timedelta(seconds=random.randint(0, 3600))
+
+            print(f"Vehicle {vehicle_id}: {self.road_name}, speed={self.speed_kmh:.1f} km/h, "
+                  f"direction={'forward' if self.direction == 1 else 'backward'}")
+
+        def get_current_location(self):
+            """Get current location."""
+            if not self.route or self.current_index >= len(self.route):
+                return None
+
+            point = self.route[self.current_index]
+            return {
+                'lat': point['lat'],
+                'lon': point['lon']
+            }
+
+        def move(self):
+            """Move to next point and calculate time elapsed."""
+            if not self.route or len(self.route) < 2:
+                return
+
+            # Get current and next point
+            current_point = self.route[self.current_index]
+            next_index = self.current_index + self.direction
+
+            # Check boundaries and reverse direction if needed
+            if next_index < 0:
+                self.direction = 1
+                next_index = self.current_index + self.direction
+            elif next_index >= len(self.route):
+                self.direction = -1
+                next_index = self.current_index + self.direction
+
+            # If still out of bounds, stay at current position
+            if next_index < 0 or next_index >= len(self.route):
+                return
+
+            next_point = self.route[next_index]
+
+            # Calculate distance to next point
+            distance_km = haversine_distance(
+                current_point['lat'], current_point['lon'],
+                next_point['lat'], next_point['lon']
+            )
+
+            # Calculate time to travel this distance at current speed
+            # time (hours) = distance (km) / speed (km/h)
+            # time (seconds) = time (hours) * 3600
+            if self.speed_kmh > 0 and distance_km > 0:
+                time_hours = distance_km / self.speed_kmh
+                time_seconds = time_hours * 3600
+
+                # Update timestamp
+                self.current_time += timedelta(seconds=time_seconds)
+
+            # Move to next point
+            self.current_index = next_index
+
+    def delivery_report(err, msg):
+        if err is not None:
+            print(f'Message delivery failed: {err}')
+
+    def main():
+        print("=== Vehicle Location Data Generator ===")
+        print(f"Start timestamp: {START_TIMESTAMP}")
+        print(f"Number of vehicles: {NUM_VEHICLES}")
+        print(f"Speed distribution: Normal(μ={SPEED_MEAN}, σ={SPEED_STD}), range [{SPEED_MIN}, {SPEED_MAX}] km/h")
+        print(f"Road points file: {ROAD_POINTS_FILE}")
+        print()
+
+        # Load routes
+        routes = load_routes(ROAD_POINTS_FILE)
+
+        if not routes:
+            print("ERROR: No routes loaded. Exiting.")
+            return
+
+        # Initialize producer
+        print("Initializing Kafka producer...")
+        producer = get_producer()
+
+        # Create vehicles
+        print(f"\nInitializing {NUM_VEHICLES} vehicles...")
+        vehicles = [Vehicle(i, routes) for i in range(NUM_VEHICLES)]
+        print()
+
+        # Main loop
+        print("Starting data generation...")
+        message_count = 0
+
+        try:
+            while True:
+                for vehicle in vehicles:
+                    location = vehicle.get_current_location()
+
+                    if location and location['lat'] != 0 and location['lon'] != 0:
+                        # Create message
+                        value = {
+                            'vehicle_id': vehicle.vehicle_id,
+                            'location': location,
+                            'ts': int(vehicle.current_time.timestamp() * 1000)  # milliseconds
+                        }
+
+                        # Produce to Kafka
+                        producer.produce(
+                            topic=TOPIC_NAME,
+                            key=str(vehicle.vehicle_id),
+                            value=value,
+                            on_delivery=delivery_report
+                        )
+
+                        message_count += 1
+
+                        # Log occasionally
+                        if message_count % 100 == 0:
+                            print(f"Sent {message_count} messages. "
+                                  f"Vehicle {vehicle.vehicle_id}: {location['lat']:.6f}, {location['lon']:.6f} "
+                                  f"at {vehicle.current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+                    # Move vehicle to next point
+                    vehicle.move()
+
+                # Flush producer
+                producer.poll(0)
+
+                # Wait before next batch
+                time.sleep(PUBLISH_INTERVAL_SEC)
+
+        except KeyboardInterrupt:
+            print("\nShutting down...")
+        finally:
+            producer.flush()
+            print(f"Total messages sent: {message_count}")
+
+    if __name__ == '__main__':
+        main()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicle-data-generator
+  namespace: confluent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicle-data-generator
+  template:
+    metadata:
+      labels:
+        app: vehicle-data-generator
+    spec:
+      containers:
+      - name: generator
+        image: python:3.10-slim
+        command: ["python", "/app/generate_data.py", "&"]
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka.confluent.svc.cluster.local:9071"
+        - name: SCHEMA_REGISTRY_URL
+          value: "https://schemaregistry.confluent.svc.cluster.local:8081"
+        - name: ROAD_POINTS_FILE
+          value: "/etc/road-data/road_points.json"
+        volumeMounts:
+        - name: script-volume
+          mountPath: /app
+        - name: road-points-volume
+          mountPath: /etc/road-data
+        - name: connector-tls
+          mountPath: /mnt/secrets/connector-tls
+          readOnly: true
+        - name: connect-tls
+          mountPath: /mnt/secrets/connect-tls
+          readOnly: true
+      volumes:
+      - name: script-volume
+        configMap:
+          name: vehicle-data-generator-script
+      - name: road-points-volume
+        configMap:
+          name: road-points-config
+      - name: connector-tls
+        secret:
+          secretName: connector-tls
+      - name: connect-tls
+        secret:
+          secretName: connect-tls
