@@ -23,7 +23,7 @@ CREATE TABLE vehicle_description (
 
 CREATE TABLE vehicle_location (
   `vehicle_id` INT,
-  `location` ROW<latitude DOUBLE, longitude DOUBLE>,
+  `location` ROW<lat DOUBLE, lon DOUBLE>,
   `ts` BIGINT,
   `event_time` AS TO_TIMESTAMP_LTZ(ts, 3),
   WATERMARK FOR event_time AS event_time - INTERVAL '1' SECOND
@@ -80,8 +80,8 @@ CREATE TABLE vehicle_info (
 CREATE VIEW vehicle_speed AS
 SELECT
   vehicle_id,
-  location.latitude AS latitude,
-  location.longitude AS longitude,
+  location.lat AS latitude,
+  location.lon AS longitude,
   prev_latitude,
   prev_longitude,
   ts,
@@ -91,9 +91,9 @@ SELECT
     2 * 6371 *
       ASIN(
         SQRT(
-          POWER(SIN(RADIANS((location.latitude - prev_latitude) / 2)), 2) +
-          COS(RADIANS(prev_latitude)) * COS(RADIANS(location.latitude)) *
-          POWER(SIN(RADIANS((location.longitude - prev_longitude) / 2)), 2)
+          POWER(SIN(RADIANS((location.lat - prev_latitude) / 2)), 2) +
+          COS(RADIANS(prev_latitude)) * COS(RADIANS(location.lat)) *
+          POWER(SIN(RADIANS((location.lon - prev_longitude) / 2)), 2)
         )
       )
       /
@@ -106,8 +106,8 @@ FROM (
     location,
     ts,
     event_time,
-    LAG(location.latitude) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_latitude,
-    LAG(location.longitude) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_longitude,
+    LAG(location.lat) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_latitude,
+    LAG(location.lon) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_longitude,
     LAG(ts) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_ts,
     LAG(event_time) OVER (PARTITION BY vehicle_id ORDER BY event_time) AS prev_event_time
   FROM vehicle_location

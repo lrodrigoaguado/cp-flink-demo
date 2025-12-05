@@ -19,7 +19,8 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
     - [Access Control Center](#access-control-center)
   - [💧 3. Feed test data](#-3-feed-test-data)
     - [Create Topics \& Start Postgres](#create-topics--start-postgres)
-    - [Start the Connectors](#start-the-connectors)
+    - [Start the Data Generators](#start-the-data-generators)
+      - [Deploy data generation (Vehicle Info and Locations)](#deploy-data-generation-vehicle-info-and-locations)
   - [🌀 4. Install CP Flink](#-4-install-cp-flink)
     - [Install Prerequities](#install-prerequities)
     - [Install Operators](#install-operators)
@@ -222,25 +223,18 @@ We use two different methods to generate data:
 1. **Datagen Connector**: For `vehicle-info` (engine stats).
 2. **Python Generator**: For `vehicle-location` (realistic truck movement).
 
-#### Deploy Datagen (Vehicle Info)
-```shell
-kubectl apply -f data/data_source.yaml
-```
+#### Configure the file with the realistic road points to be used:
 
-#### Deploy Realistic Location Generator
-This custom generator simulates trucks moving on real Spanish highways (A-1 to A-8) using OpenStreetMap data.
-
-First, create the road data ConfigMap:
 ```shell
 kubectl create configmap road-points-config \
-  --from-file=road_points.json=etc/road_points_merged.json \
+  --from-file=road_points.json=etc/road_points.json \
   -n confluent \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Then deploy the generator:
+#### Deploy data generation (Vehicle Info and Locations)
 ```shell
-kubectl apply -f data/data-generator.yaml -n confluent
+kubectl apply -f data/data_source.yaml
 ```
 
 > 📖 **See [DATA_GENERATION.md](DATA_GENERATION.md) for full details on how the realistic data generation works.**
@@ -376,6 +370,27 @@ curl -X PUT "localhost:9200/_index_template/vehicle-alerts-template" \
           "ts": { "type": "date", "format": "epoch_millis" }
         }
       }
+    }
+  }'
+
+curl -X PUT "localhost:9200/_index_template/vehicle-locations-template" \
+  -u elastic:elastic \
+  -H 'Content-Type: application/json' \
+  -d '{
+      "template": {
+        "mappings": {
+          "properties": {
+            "vehicle_id": {
+              "type": "keyword"
+            },
+            "ts": { "type": "date", "format": "epoch_millis" },
+            "location": { "type": "geo_point" }
+          }
+        }
+      },
+      "index_patterns": [
+        "vehicle-location*"
+      ]
     }
   }'
 ```
