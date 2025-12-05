@@ -6,7 +6,7 @@ metadata:
 spec:
   flinkEnvironment: flink-env1
   image: flink-sql-runner-example
-  flinkVersion: v1_20
+  flinkVersion: v2_1
   flinkConfiguration:
     "taskmanager.numberOfTaskSlots": "2"
     "taskmanager.memory.process.size": "2048m"
