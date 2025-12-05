@@ -1,211 +1,211 @@
----
-apiVersion: platform.confluent.io/v1beta1
-kind: Connector
-metadata:
-  name: vehicle-location
-  namespace: confluent
-spec:
-  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
-  taskMax: 1
-  connectClusterRef:
-    name: connect
-    namespace: confluent
-  connectRest:
-    endpoint: https://connect.confluent.svc.cluster.local:8083
-    authentication:
-      type: mtls
-    tls:
-      secretRef: connector-tls
-  configs:
-    kafka.topic: "vehicle-location"
-    #quickstart: "fleet_mgmt_location"
-    schema.string: |
-      {
-          "namespace": "fleet_mgmt",
-          "name": "fleet_mgmt_location",
-          "type": "record",
-          "fields": [
-              {
-                  "name": "vehicle_id",
-                  "type": {
-                      "type": "int",
-                      "arg.properties": {
-                          "range": {
-                              "min": 0,
-                              "max": 150
-                          }
-                      }
-                  }
-              },
-              {
-                  "name": "location",
-                  "type": {
-                      "type": "record",
-                      "name": "location",
-                      "fields": [
-                          {
-                              "name": "latitude",
-                              "type": "double"
-                          },
-                          {
-                              "name": "longitude",
-                              "type": "double"
-                          }
-                      ]
-                  },
-                  "arg.properties": {
-                      "options": [
-                          {
-                              "latitude": 37.416834,
-                              "longitude": -121.975002
-                          },
-                          {
-                              "latitude": 37.664725,
-                              "longitude": -121.79737
-                          },
-                          {
-                              "latitude": 38.124221,
-                              "longitude": -121.182135
-                          },
-                          {
-                              "latitude": 38.623772,
-                              "longitude": -120.176886
-                          },
-                          {
-                              "latitude": 39.544752,
-                              "longitude": -119.589118
-                          },
-                          {
-                              "latitude": 37.725577,
-                              "longitude": -121.709479
-                          },
-                          {
-                              "latitude": 38.658096,
-                              "longitude": -120.138434
-                          },
-                          {
-                              "latitude": 39.752002,
-                              "longitude": -119.050787
-                          },
-                          {
-                              "latitude": 39.680169,
-                              "longitude": -119.111212
-                          },
-                          {
-                              "latitude": 40.445308,
-                              "longitude": -118.30921
-                          },
-                          {
-                              "latitude": 40.122644,
-                              "longitude": -118.517951
-                          },
-                          {
-                              "latitude": 40.907734,
-                              "longitude": -117.831305
-                          },
-                          {
-                              "latitude": 39.718207,
-                              "longitude": -119.105719
-                          },
-                          {
-                              "latitude": 40.853569,
-                              "longitude": -117.226383
-                          },
-                          {
-                              "latitude": 40.683171,
-                              "longitude": -116.622809
-                          },
-                          {
-                              "latitude": 40.82604,
-                              "longitude": -117.169294
-                          },
-                          {
-                              "latitude": 37.699504,
-                              "longitude": -121.731452
-                          },
-                          {
-                              "latitude": 39.912298,
-                              "longitude": -118.825568
-                          },
-                          {
-                              "latitude": 39.895442,
-                              "longitude": -118.880499
-                          },
-                          {
-                              "latitude": 39.827978,
-                              "longitude": -118.979376
-                          },
-                          {
-                              "latitude": 38.167421,
-                              "longitude": -121.116217
-                          },
-                          {
-                              "latitude": 40.628996,
-                              "longitude": -116.436041
-                          },
-                          {
-                              "latitude": 38.537888,
-                              "longitude": -120.413092
-                          },
-                          {
-                              "latitude": 39.756225,
-                              "longitude": -119.056281
-                          },
-                          {
-                              "latitude": 39.92915,
-                              "longitude": -118.748663
-                          },
-                          {
-                              "latitude": 40.924338,
-                              "longitude": -117.847785
-                          },
-                          {
-                              "latitude": 40.828808,
-                              "longitude": -117.166632
-                          },
-                          {
-                              "latitude": 38.499207,
-                              "longitude": -120.49549
-                          },
-                          {
-                              "latitude": 39.760448,
-                              "longitude": -119.061774
-                          },
-                          {
-                              "latitude": 37.391868,
-                              "longitude": -122.071206
-                          }
-                      ]
-                  }
-              },
-              {
-                  "name": "ts",
-                  "type": {
-                      "type": "long",
-                      "logicalType": "timestamp-millis",
-                      "arg.properties": {
-                          "iteration": {
-                              "start": 1735725600000,
-                              "step": 100000
-                          }
-                      }
-                  }
-              }
-          ]
-      }
-    schema.keyfield: "vehicle_id"
-    key.converter: "org.apache.kafka.connect.storage.StringConverter"
-    value.converter: "io.confluent.connect.avro.AvroConverter"
-    value.converter.schemas.enable: "true"
-    max.interval: "100"
-    iterations: "-1"
-    value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
-    value.converter.enhanced.avro.schema.support: "true"
-    value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
-    value.converter.schema.registry.ssl.truststore.password: confluent
-    value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
-    value.converter.schema.registry.ssl.keystore.password: confluent
-    value.converter.schema.registry.ssl.key.password: confluent
+# ---
+# apiVersion: platform.confluent.io/v1beta1
+# kind: Connector
+# metadata:
+#   name: vehicle-location
+#   namespace: confluent
+# spec:
+#   class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+#   taskMax: 1
+#   connectClusterRef:
+#     name: connect
+#     namespace: confluent
+#   connectRest:
+#     endpoint: https://connect.confluent.svc.cluster.local:8083
+#     authentication:
+#       type: mtls
+#     tls:
+#       secretRef: connector-tls
+#   configs:
+#     kafka.topic: "vehicle-location"
+#     #quickstart: "fleet_mgmt_location"
+#     schema.string: |
+#       {
+#           "namespace": "fleet_mgmt",
+#           "name": "fleet_mgmt_location",
+#           "type": "record",
+#           "fields": [
+#               {
+#                   "name": "vehicle_id",
+#                   "type": {
+#                       "type": "int",
+#                       "arg.properties": {
+#                           "range": {
+#                               "min": 0,
+#                               "max": 150
+#                           }
+#                       }
+#                   }
+#               },
+#               {
+#                   "name": "location",
+#                   "type": {
+#                       "type": "record",
+#                       "name": "location",
+#                       "fields": [
+#                           {
+#                               "name": "latitude",
+#                               "type": "double"
+#                           },
+#                           {
+#                               "name": "longitude",
+#                               "type": "double"
+#                           }
+#                       ]
+#                   },
+#                   "arg.properties": {
+#                       "options": [
+#                           {
+#                               "latitude": 37.416834,
+#                               "longitude": -121.975002
+#                           },
+#                           {
+#                               "latitude": 37.664725,
+#                               "longitude": -121.79737
+#                           },
+#                           {
+#                               "latitude": 38.124221,
+#                               "longitude": -121.182135
+#                           },
+#                           {
+#                               "latitude": 38.623772,
+#                               "longitude": -120.176886
+#                           },
+#                           {
+#                               "latitude": 39.544752,
+#                               "longitude": -119.589118
+#                           },
+#                           {
+#                               "latitude": 37.725577,
+#                               "longitude": -121.709479
+#                           },
+#                           {
+#                               "latitude": 38.658096,
+#                               "longitude": -120.138434
+#                           },
+#                           {
+#                               "latitude": 39.752002,
+#                               "longitude": -119.050787
+#                           },
+#                           {
+#                               "latitude": 39.680169,
+#                               "longitude": -119.111212
+#                           },
+#                           {
+#                               "latitude": 40.445308,
+#                               "longitude": -118.30921
+#                           },
+#                           {
+#                               "latitude": 40.122644,
+#                               "longitude": -118.517951
+#                           },
+#                           {
+#                               "latitude": 40.907734,
+#                               "longitude": -117.831305
+#                           },
+#                           {
+#                               "latitude": 39.718207,
+#                               "longitude": -119.105719
+#                           },
+#                           {
+#                               "latitude": 40.853569,
+#                               "longitude": -117.226383
+#                           },
+#                           {
+#                               "latitude": 40.683171,
+#                               "longitude": -116.622809
+#                           },
+#                           {
+#                               "latitude": 40.82604,
+#                               "longitude": -117.169294
+#                           },
+#                           {
+#                               "latitude": 37.699504,
+#                               "longitude": -121.731452
+#                           },
+#                           {
+#                               "latitude": 39.912298,
+#                               "longitude": -118.825568
+#                           },
+#                           {
+#                               "latitude": 39.895442,
+#                               "longitude": -118.880499
+#                           },
+#                           {
+#                               "latitude": 39.827978,
+#                               "longitude": -118.979376
+#                           },
+#                           {
+#                               "latitude": 38.167421,
+#                               "longitude": -121.116217
+#                           },
+#                           {
+#                               "latitude": 40.628996,
+#                               "longitude": -116.436041
+#                           },
+#                           {
+#                               "latitude": 38.537888,
+#                               "longitude": -120.413092
+#                           },
+#                           {
+#                               "latitude": 39.756225,
+#                               "longitude": -119.056281
+#                           },
+#                           {
+#                               "latitude": 39.92915,
+#                               "longitude": -118.748663
+#                           },
+#                           {
+#                               "latitude": 40.924338,
+#                               "longitude": -117.847785
+#                           },
+#                           {
+#                               "latitude": 40.828808,
+#                               "longitude": -117.166632
+#                           },
+#                           {
+#                               "latitude": 38.499207,
+#                               "longitude": -120.49549
+#                           },
+#                           {
+#                               "latitude": 39.760448,
+#                               "longitude": -119.061774
+#                           },
+#                           {
+#                               "latitude": 37.391868,
+#                               "longitude": -122.071206
+#                           }
+#                       ]
+#                   }
+#               },
+#               {
+#                   "name": "ts",
+#                   "type": {
+#                       "type": "long",
+#                       "logicalType": "timestamp-millis",
+#                       "arg.properties": {
+#                           "iteration": {
+#                               "start": 1735725600000,
+#                               "step": 100000
+#                           }
+#                       }
+#                   }
+#               }
+#           ]
+#       }
+#     schema.keyfield: "vehicle_id"
+#     key.converter: "org.apache.kafka.connect.storage.StringConverter"
+#     value.converter: "io.confluent.connect.avro.AvroConverter"
+#     value.converter.schemas.enable: "true"
+#     max.interval: "100"
+#     iterations: "-1"
+#     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
+#     value.converter.enhanced.avro.schema.support: "true"
+#     value.converter.schema.registry.ssl.truststore.location: /mnt/sslcerts/truststore.jks
+#     value.converter.schema.registry.ssl.truststore.password: confluent
+#     value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
+#     value.converter.schema.registry.ssl.keystore.password: confluent
+#     value.converter.schema.registry.ssl.key.password: confluent
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Connector
@@ -297,3 +297,265 @@ spec:
     value.converter.schema.registry.ssl.keystore.location: /mnt/sslcerts/keystore.jks
     value.converter.schema.registry.ssl.keystore.password: confluent
     value.converter.schema.registry.ssl.key.password: confluent
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vehicle-data-generator-script
+  namespace: confluent
+data:
+  generate_data.py: |
+    import time
+    import json
+    import random
+    import socket
+    import os
+    import logging
+    from datetime import datetime, timedelta
+
+    # Install dependencies if not present
+    import subprocess
+    import sys
+    try:
+        import confluent_kafka
+        from confluent_kafka import SerializingProducer
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        from confluent_kafka.schema_registry.avro import AvroSerializer
+        from confluent_kafka.serialization import StringSerializer
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "confluent-kafka[avro]", "fastavro"])
+        import confluent_kafka
+        from confluent_kafka import SerializingProducer
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        from confluent_kafka.schema_registry.avro import AvroSerializer
+        from confluent_kafka.serialization import StringSerializer
+
+    # Configure logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logger = logging.getLogger(__name__)
+
+    # Configuration
+    KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka.confluent.svc.cluster.local:9071')
+    SCHEMA_REGISTRY_URL = os.environ.get('SCHEMA_REGISTRY_URL', 'https://schemaregistry.confluent.svc.cluster.local:8081')
+    TOPIC_NAME = 'vehicle-location'
+    ROAD_POINTS_FILE = os.environ.get('ROAD_POINTS_FILE', '/etc/road-data/road_points.json')
+    PUBLISH_INTERVAL_SEC = 1
+
+    # Simulation Configuration
+    START_TIMESTAMP = datetime(2025, 1, 1, 9, 0, 0)
+    NUM_VEHICLES = 150
+    SPEED_MEAN, SPEED_STD = 110, 15
+    SPEED_MIN, SPEED_MAX = 75, 145
+
+    # SSL Configuration paths (mounted in pod)
+    CA_LOCATION = '/mnt/secrets/connector-tls/cacerts.pem'
+    CERTIFICATE_LOCATION = '/mnt/secrets/connector-tls/fullchain.pem'
+    KEY_LOCATION = '/mnt/secrets/connector-tls/privkey.pem'
+
+    # Avro Schema
+    SCHEMA_STR = """
+    {
+        "namespace": "fleet_mgmt",
+        "name": "fleet_mgmt_location",
+        "type": "record",
+        "fields": [
+            { "name": "vehicle_id", "type": "int" },
+            {
+                "name": "location",
+                "type": {
+                    "type": "record",
+                    "name": "location",
+                    "fields": [
+                        { "name": "lat", "type": "double" },
+                        { "name": "lon", "type": "double" }
+                    ]
+                }
+            },
+            { "name": "ts", "type": { "type": "long", "logicalType": "timestamp-millis" } }
+        ]
+    }
+    """
+
+    def get_producer():
+        schema_registry_conf = {
+            'url': SCHEMA_REGISTRY_URL,
+            'ssl.ca.location': CA_LOCATION,
+            'ssl.certificate.location': CERTIFICATE_LOCATION,
+            'ssl.key.location': KEY_LOCATION
+        }
+        schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+        avro_serializer = AvroSerializer(schema_registry_client, SCHEMA_STR)
+
+        producer_conf = {
+            'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS,
+            'client.id': socket.gethostname(),
+            'security.protocol': 'SSL',
+            'ssl.ca.location': CA_LOCATION,
+            'ssl.certificate.location': CERTIFICATE_LOCATION,
+            'ssl.key.location': KEY_LOCATION,
+            'key.serializer': StringSerializer('utf_8'),
+            'value.serializer': avro_serializer
+        }
+        return SerializingProducer(producer_conf)
+
+    def get_next_speed(current_speed=None):
+        """Generate next speed using Markov chain approach."""
+        mean = current_speed if current_speed else SPEED_MEAN
+        std = 5 if current_speed else SPEED_STD
+        return max(SPEED_MIN, min(SPEED_MAX, random.gauss(mean, std)))
+
+    def load_routes(file_path):
+        """Load and sort road points."""
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+            for points in data.values():
+                points.sort(key=lambda p: p.get('km', 0))
+            logger.info(f"Loaded {len(data)} roads from {file_path}")
+            return data
+        except Exception as e:
+            logger.error(f"Failed to load routes: {e}")
+            return {}
+
+    class Vehicle:
+        def __init__(self, vehicle_id, routes):
+            self.id = vehicle_id
+            # Select random road with at least 2 points
+            valid_roads = [r for r, pts in routes.items() if len(pts) > 1]
+            self.road = random.choice(valid_roads) if valid_roads else "NONE"
+            self.route = routes.get(self.road, [])
+
+            self.idx = random.randint(0, max(0, len(self.route) - 1))
+            self.speed = get_next_speed()
+            self.direction = random.choice([1, -1])
+            self.ts = START_TIMESTAMP + timedelta(seconds=random.randint(0, 3600))
+
+        def get_data(self):
+            """Return current vehicle data."""
+            if not self.route: return None
+            pt = self.route[self.idx]
+            return {
+                'vehicle_id': self.id,
+                'location': {'lat': pt['lat'], 'lon': pt['lon']},
+                'ts': int(self.ts.timestamp() * 1000),
+                # Internal fields for logging
+                '_road': self.road,
+                '_km': pt.get('km', 0),
+                '_speed': self.speed
+            }
+
+        def move(self):
+            """Advance vehicle state."""
+            if len(self.route) < 2: return
+
+            # Update speed
+            self.speed = get_next_speed(self.speed)
+
+            # Calculate next position (bounce at ends)
+            next_idx = self.idx + self.direction
+            if not (0 <= next_idx < len(self.route)):
+                self.direction *= -1
+                next_idx = self.idx + self.direction
+
+            # Update timestamp based on distance and speed
+            curr_pt, next_pt = self.route[self.idx], self.route[next_idx]
+            dist_km = abs(next_pt.get('km', 0) - curr_pt.get('km', 0))
+
+            if self.speed > 0:
+                self.ts += timedelta(seconds=(dist_km / self.speed) * 3600)
+
+            self.idx = next_idx
+
+    def delivery_report(err, msg):
+        if err is not None:
+            logger.error(f'Message delivery failed: {err}')
+
+    def main():
+        logger.info("Starting Vehicle Generator (Kafka Mode)")
+        routes = load_routes(ROAD_POINTS_FILE)
+        if not routes: return
+
+        logger.info("Initializing Kafka producer...")
+        producer = get_producer()
+
+        logger.info(f"Initializing {NUM_VEHICLES} vehicles...")
+        vehicles = [Vehicle(i, routes) for i in range(NUM_VEHICLES)]
+
+        try:
+            while True:
+                for v in vehicles:
+                    data = v.get_data()
+                    if not data: continue
+
+                    # Extract debug info
+                    road, km, speed = data.pop('_road'), data.pop('_km'), data.pop('_speed')
+
+                    # Log debug info
+                    logger.debug(f"Vehicle {data['vehicle_id']}: {road} km {km:.3f} | Speed: {speed:.1f} km/h")
+
+                    # Produce to Kafka
+                    producer.produce(
+                        topic=TOPIC_NAME,
+                        key=str(data['vehicle_id']),
+                        value=data,
+                        on_delivery=delivery_report
+                    )
+
+                    v.move()
+
+                producer.flush()
+                time.sleep(PUBLISH_INTERVAL_SEC)
+        except KeyboardInterrupt:
+            logger.info("Stopped.")
+
+    if __name__ == '__main__':
+        main()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicle-data-generator
+  namespace: confluent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicle-data-generator
+  template:
+    metadata:
+      labels:
+        app: vehicle-data-generator
+    spec:
+      containers:
+      - name: generator
+        image: python:3.10-slim
+        command: ["python", "/app/generate_data.py"]
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka.confluent.svc.cluster.local:9071"
+        - name: SCHEMA_REGISTRY_URL
+          value: "https://schemaregistry.confluent.svc.cluster.local:8081"
+        - name: ROAD_POINTS_FILE
+          value: "/etc/road-data/road_points.json"
+        volumeMounts:
+        - name: script-volume
+          mountPath: /app
+        - name: road-points-volume
+          mountPath: /etc/road-data
+        - name: connector-tls
+          mountPath: /mnt/secrets/connector-tls
+          readOnly: true
+      volumes:
+      - name: script-volume
+        configMap:
+          name: vehicle-data-generator-script
+      - name: road-points-volume
+        configMap:
+          name: road-points-config
+      - name: connector-tls
+        secret:
+          secretName: connector-tls
