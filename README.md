@@ -367,6 +367,9 @@ curl -X PUT "localhost:9200/_index_template/vehicle-alerts-template" \
     "template": {
       "mappings": {
         "properties": {
+          "vehicle_id": {
+              "type": "keyword"
+            },
           "ts": { "type": "date", "format": "epoch_millis" }
         }
       }
