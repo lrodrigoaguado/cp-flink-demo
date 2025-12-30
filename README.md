@@ -83,6 +83,8 @@ The results are finally sent to Elasticsearch for analysis using Confluent's Ela
 
 # Setup
 
+Quick start: see [README_RUN.md](README_RUN.md) for scripted setup and cleanup.
+
 The following section details a step by step procedure to make the demo work locally. You can safely copy and paste the commands and it should work seamlessly.
 
 ##  Prerequisites
