@@ -18,6 +18,10 @@ spec:
     "pekko.ask.timeout": 600s
     "pekko.tcp.timeout": 600s
     "heartbeat.timeout": "500000"
+    # This prevents the operator from deleting the failed JM pod immediately
+    kubernetes.operator.reconcile.interval: 3600s 
+    # Optional: Increase the startup probe time so it doesn't fail so fast
+    kubernetes.operator.jvm.fatal-error.shutdown: "false"
   serviceAccount: flink
   jobManager:
     resource:
