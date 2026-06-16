@@ -1,10 +1,10 @@
-# 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.1 and CP Flink
+# 🚚 Real-Time Fleet Monitoring with Confluent Platform 8.2 and CP Flink
 
-> A complete, operator-managed real-time streaming demo on Kubernetes using **Confluent Platform 8.1**, **CP Flink**, and **Elasticsearch** for real-time analytics.
+> A complete, operator-managed real-time streaming demo on Kubernetes using **Confluent Platform 8.2**, **CP Flink**, and **Elasticsearch** for real-time analytics.
 
 This project demonstrates a complete, real-time data pipeline built on the **Confluent Platform** to ingest and manage data streams, and **CP Flink** to process, analyze, and enrich that data in real-time.
 
-- [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.1 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-81-and-cp-flink)
+- [🚚 Real-Time Fleet Monitoring with Confluent Platform 8.2 and CP Flink](#-real-time-fleet-monitoring-with-confluent-platform-82-and-cp-flink)
   - [Disclaimer](#disclaimer)
   - [What You'll Build](#what-youll-build)
   - [Architecture](#architecture)
@@ -83,20 +83,28 @@ The results are finally sent to Elasticsearch for analysis using Confluent's Ela
 
 # Setup
 
-Quick start: see [README_RUN.md](README_RUN.md) for scripted setup and cleanup.
+Quick start: see [docs/README_RUN.md](docs/README_RUN.md) for scripted setup and cleanup.
 
 The following section details a step by step procedure to make the demo work locally. You can safely copy and paste the commands and it should work seamlessly.
+
+> 📌 **Versions are centralized in [`versions.env`](versions.env).** Source it once in your shell so the version numbers in the commands below stay in sync with the automated `run_all.sh`:
+>
+> ```shell
+> source versions.env
+> ```
 
 ##  Prerequisites
 
 > To run this demo, you'll need a working local environment with kind, helm, kubectl, openssl, and maven.
+>
+> ℹ️ Requires **kind CLI ≥ v0.32.0**. The cluster uses the `v1.35.5` node image (containerd 2.3.x); older kind CLIs fail to load images into it with an `unknown containerd config version: 4` error.
 
 ## 🧱 1. Deploy Kubernetes
 
 First, create a local Kubernetes cluster using `kind`.
 
 ```shell
-kind create cluster --image kindest/node:v1.31.0
+kind create cluster --image "$KIND_NODE_IMAGE"
 ```
 
 <details>
@@ -133,8 +141,8 @@ kubectl config set-context --current --namespace=confluent
 helm repo add confluentinc https://packages.confluent.io/helm
 helm repo add elastic https://helm.elastic.co
 helm repo update
-helm upgrade --install operator confluentinc/confluent-for-kubernetes
-helm install elastic-operator elastic/eck-operator -n confluent
+helm upgrade --install operator confluentinc/confluent-for-kubernetes --version "$CFK_OPERATOR_VERSION"
+helm upgrade --install elastic-operator elastic/eck-operator --version "$ECK_OPERATOR_VERSION" -n confluent
 ```
 
 🔍 **Check Status:** Wait for the operator pod to be in a `Running` state.
@@ -147,10 +155,10 @@ The different components inthe demo will use mTLS, so we have to create certific
 
 ```shell
 # Generate all the necessary TLS certificates
-./generate_certificates.sh
+./scripts/generate_certificates.sh
 
 # Create Kubernetes secrets from the generated certificates
-./create_secrets.sh
+./scripts/create_secrets.sh
 ```
 
 ### Deploy Confluent Components
@@ -159,12 +167,12 @@ Apply the `infra.yaml` manifest to deploy the entire Confluent Platform. This wi
 
 | Component         | Version | Replicas | Notes                                |
 | ----------------- | ------- | -------- | ------------------------------------ |
-| kRaft Controller  | 8.1.0   | 1        | Manages the Kafka cluster (no ZK)    |
-| Kafka Broker      | 8.1.0   | 3        | The core streaming platform          |
-| Schema Registry   | 8.1.0   | 1        | Manages Avro schemas                 |
-| Kafka Connect     | 8.1.0   | 1        | For data integration (our data source) |
-| REST Proxy        | 8.1.0   | 1        | HTTP access to Kafka                 |
-| Control Center    | 2.2.2   | 1        | The web-based management UI          |
+| kRaft Controller  | 8.2.1   | 1        | Manages the Kafka cluster (no ZK)    |
+| Kafka Broker      | 8.2.1   | 3        | The core streaming platform          |
+| Schema Registry   | 8.2.1   | 1        | Manages Avro schemas                 |
+| Kafka Connect     | 8.2.1   | 1        | For data integration (our data source) |
+| REST Proxy        | 8.2.1   | 1        | HTTP access to Kafka                 |
+| Control Center    | 2.5.0   | 1        | The web-based management UI          |
 
 ```shell
 kubectl apply -f cp/infra.yaml
@@ -236,10 +244,10 @@ kubectl create configmap road-points-config \
 
 #### Deploy data generation (Vehicle Info and Locations)
 ```shell
-kubectl apply -f data/data_source.yaml
+kubectl apply -f data/data-source.yaml
 ```
 
-> 📖 **See [DATA_GENERATION.md](DATA_GENERATION.md) for full details on how the realistic data generation works.**
+> 📖 **See [docs/DATA_GENERATION.md](docs/DATA_GENERATION.md) for full details on how the realistic data generation works.**
 
 🔍 **Check Status:** In Control Center you should see:
 * `vehicle-location`: continuous coordinate stream from the Python generator.
@@ -256,7 +264,7 @@ Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apa
 Install certificate manager, a requirement for the Flink Operator:
 
 ```shell
-kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.18.2/cert-manager.yaml
+kubectl create -f "https://github.com/jetstack/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 ```
 🔍 **Check Status:** Wait until an endpoint IP is assigned when executing the following
 
@@ -270,13 +278,13 @@ Install the Flink Kubernetes Operator and then, with the Operator deployed, now 
 
 ```shell
 kubectl config set-context --current --namespace=confluent
-helm upgrade --install cp-flink-kubernetes-operator --version "~1.130.1" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
+helm upgrade --install cp-flink-kubernetes-operator --version "$FLINK_OPERATOR_VERSION" confluentinc/flink-kubernetes-operator --set watchNamespaces="{confluent}"
 
 openssl rand -out ./certs/cmf.key 32
-kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent
+kubectl create secret generic cmf-encryption-key --from-file=encryption-key=./certs/cmf.key -n confluent --dry-run=client -o yaml | kubectl apply -f -
 
 helm upgrade --install -f cp/mtls-cmf.yaml cmf confluentinc/confluent-manager-for-apache-flink \
-    --version "~2.1.0" \
+    --version "$CMF_VERSION" \
     --set cmf.logging.level.root=debug \
     --set cmf.sql.production=true \
     --set encryption.key.kubernetesSecretName=cmf-encryption-key \
@@ -308,6 +316,16 @@ kubectl apply -f cp/cmf-rest-class.yaml
 kubectl get cmfrestclass cmfrestclass -n confluent -oyaml
 ```
 
+### Refresh Control Center
+
+Control Center was started back in step 2, **before** CMF existed, so it initialised its CMF/Flink integration as unavailable and will not recover on its own (the **Flink** section stays empty). Now that CMF is running, restart Control Center and re-create its port-forward so it detects the Flink environment:
+
+```shell
+kubectl delete pod controlcenter-ng-0 -n confluent
+kubectl wait --for=condition=Ready pod/controlcenter-ng-0 -n confluent --timeout=600s
+kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 &
+```
+
 ---
 
 ## ⚡ 5. Process the data with Flink
@@ -334,7 +352,7 @@ The Flink application is defined declaratively. It will perform the following st
 
 1.  Calculates the real-time speed of each truck based on its location data.
 2.  Generates an alert if a truck exceeds a threshold for speed (>120 km/h), engine temperature (>210°C), or RPMs (>7500).
-3.  Enriches these alerts by joining them with the Postgres `vehicle_description` table (JDBC lookup) to add the driver's name, vehicle brand, and license plate.
+3.  Enriches these alerts by joining them with the Postgres `vehicle_description` table (JDBC lookup) to add the driver's name, vehicle brand, and license plate, and tags each alert with the vehicle's last known location so it can be plotted on a map.
 4.  Writes the final, enriched alerts to the `vehicle-alerts-enriched` topic.
 
 And now create our CP Flink environment:
@@ -372,7 +390,8 @@ curl -X PUT "localhost:9200/_index_template/vehicle-alerts-template" \
           "vehicle_id": {
               "type": "keyword"
             },
-          "ts": { "type": "date", "format": "epoch_millis" }
+          "ts": { "type": "date", "format": "epoch_millis" },
+          "location": { "type": "geo_point" }
         }
       }
     }
@@ -396,14 +415,13 @@ curl -X PUT "localhost:9200/_index_template/vehicle-locations-template" \
       "index_patterns": [
         "vehicle-location*"
       ]
-    }
-  }'
+    }'
 ```
 
 and once that it is ready, we start a Elasticsearch Sink Connector that will write the contents of that topic to an Elasticsearch index:
 
 ```shell
-kubectl apply -f data/data_sink.yaml
+kubectl apply -f data/data-sink.yaml
 ```
 
 Information will start flowing from the output topic in Kafka to Elasticsearch. Run the following command to create the dashboard that can help analyzing the data:
@@ -417,6 +435,13 @@ curl -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \
 ```
 
 You should be able to connect to https://localhost:5601/app/dashboards#/view/edc82d17-8f5b-4112-ae57-04571e41c276?_g=(filters:!()) and use the credentials elastic/elastic to log into Kibana and see the data flowing.
+
+The dashboard is built around a live map of the fleet that auto-refreshes every second:
+
+- **Vehicles (live)** — the latest known position of every truck.
+- **Alert layers** — alerts plotted where they happen, colour-coded by type: 🔴 engine overheat, 🟠 excessive speed, 🟡 excessive RPM. Hover a marker to see the driver, license plate, brand and the offending value.
+
+Surrounding panels keep the KPI gauges, the alerts-over-time trend and the per-driver / per-truck breakdowns.
 
 ✅ **Done!** Your end-to-end pipeline is now running. You can explore the final `vehicle-alerts-enriched` topic in Control Center to see the processed data, and view the Flink job's metrics in the "Apache Flink Dashboard" within Control Center.
 
