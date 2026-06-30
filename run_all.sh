@@ -333,9 +333,10 @@ phase_es() {
       "index_patterns": ["vehicle-location*"]
     }' | jq -r '.acknowledged // .status // .error?.reason' || true
 
-  log "Deploying Elasticsearch Sink Connector"
+  log "Deploying Elasticsearch Sink Connectors"
   kubectl apply -f data/data-sink.yaml
-  wait_connector_running "elastic-sink" "confluent" 300
+  wait_connector_running "elastic-sink-location" "confluent" 300
+  wait_connector_running "elastic-sink-alerts" "confluent" 300
 
   log "Importing Kibana dashboard"
   curl -sS -X POST "https://localhost:5601/api/saved_objects/_import?overwrite=true" \

@@ -270,7 +270,7 @@ spec:
         memory: 1024Mi
         cpu: 200m
   image:
-    application: confluentinc/cp-enterprise-control-center-next-gen:2.5.0
+    application: confluentinc/cp-enterprise-control-center-next-gen:2.5.1
     init: confluentinc/confluent-init-container:3.2.2
   dataVolumeCapacity: 10Gi
   tls:
@@ -313,7 +313,7 @@ spec:
         enabled: true
   services:
     prometheus:
-       image: confluentinc/cp-enterprise-prometheus:2.5.0
+       image: confluentinc/cp-enterprise-prometheus:2.5.1
        authentication:
          type: mtls
        tls:
@@ -321,7 +321,7 @@ spec:
        pvc:
          dataVolumeCapacity: 10Gi
     alertmanager:
-       image: confluentinc/cp-enterprise-alertmanager:2.5.0
+       image: confluentinc/cp-enterprise-alertmanager:2.5.1
        authentication:
          type: mtls
        tls:
