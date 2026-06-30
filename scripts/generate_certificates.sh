@@ -171,6 +171,8 @@ do
   cp global.truststore.jks ./$i/$i.truststore.jks
 done
 
+# Refresh the copy used by the Flink image build (remove first so re-runs don't nest)
+rm -rf ../flink-sql/flink-sql-runner-example/flink-app1
 cp -r flink-app1 ../flink-sql/flink-sql-runner-example/flink-app1
 
 rm 1*.pem

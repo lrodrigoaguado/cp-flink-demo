@@ -25,6 +25,16 @@ chmod +x run_all.sh
 ./run_all.sh
 ```
 
+The run is split into ordered phases (`preconditions cluster operators certs cp data flink es`) that mirror the README sections. If a run is interrupted, you can resume or re-run a single phase:
+
+```bash
+./run_all.sh --from flink          # resume starting at the Flink phase
+./run_all.sh --only es             # re-run just the Elasticsearch/Kibana phase
+./run_all.sh --no-background-build # build the Flink image inline (not in the background)
+```
+
+By default the Flink image is built in the background so it overlaps with the (slow) Confluent Platform bring-up.
+
 What the script does (high level):
 - Creates a local kind cluster and `confluent` namespace.
 - Installs CFK and ECK operators.
@@ -32,11 +42,11 @@ What the script does (high level):
 - Deploys Confluent Platform components from `cp/infra.yaml`.
 - Starts background port-forwards for Control Center (`9021`), Kibana (`5601`), and Elasticsearch (`9200`).
 - Starts Postgres via docker compose and waits for health.
-- Applies Kafka topics and data sources (`data/topics.yaml`, `data/data_source.yaml`).
+- Applies Kafka topics and data sources (`data/topics.yaml`, `data/data-source.yaml`).
 - Installs cert-manager, Flink operator, and Confluent Manager for Apache Flink.
 - Applies CMF REST Class (`cp/cmf-rest-class.yaml`).
 - Builds and loads the Flink SQL runner image into kind, then applies Flink environment and application (`flink/flink-*.yaml`).
-- Creates Elasticsearch index templates and deploys the sink connector (`data/data_sink.yaml`).
+- Creates Elasticsearch index templates and deploys the sink connector (`data/data-sink.yaml`).
 - Imports a Kibana dashboard.
 
 Access UIs:
@@ -59,7 +69,7 @@ curl -u elastic:elastic http://localhost:9200/_cat/indices?v
 
 You should see:
 - All pods Ready in `confluent`.
-- Connectors `vehicle-info` and `elastic-sink` in RUNNING state.
+- Connectors `vehicle-info`, `elastic-sink-location` and `elastic-sink-alerts` in RUNNING state.
 - `vehicle-location` and `vehicle-info` topics receiving data.
 - Kibana dashboard imported and indices created.
 

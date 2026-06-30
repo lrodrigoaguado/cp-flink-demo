@@ -15,7 +15,7 @@ CREATE TABLE vehicle_description (
   'scan.fetch-size' = '200',
   'scan.partition.column' = 'vehicle_id',
   'scan.partition.lower-bound' = '0',
-  'scan.partition.upper-bound' = '149',
+  'scan.partition.upper-bound' = '79',
   'scan.partition.num' = '5',
   'lookup.cache.max-rows' = '200',
   'lookup.cache.ttl' = '600 s'
@@ -114,12 +114,30 @@ FROM (
 );
 
 
--- 3. Detect anomalies (engine_temperature > 110 or avg_rpm > 7500)
+-- 2b. Keep the latest known position per vehicle (deduplication keyed by vehicle_id).
+-- Used to attach coordinates to engine/RPM alerts, which arrive without location.
+CREATE VIEW vehicle_latest_location AS
+SELECT vehicle_id, latitude, longitude
+FROM (
+  SELECT
+    vehicle_id,
+    location.lat AS latitude,
+    location.lon AS longitude,
+    ROW_NUMBER() OVER (PARTITION BY vehicle_id ORDER BY event_time DESC) AS row_num
+  FROM vehicle_location
+)
+WHERE row_num = 1;
+
+
+-- 3. Detect anomalies (engine_temperature > 245 or avg_rpm > 8800).
+-- Thresholds sit in the far tail of the sensor distributions so alerts represent
+-- genuine, rare exceptions rather than routine readings.
 CREATE TABLE vehicle_alerts (
   `vehicle_id` INT,
   `alert_type` STRING,
   `alert_value` INT,
   `ts` BIGINT,
+  `location` ROW<`lat` DOUBLE, `lon` DOUBLE>,
   PRIMARY KEY (vehicle_id) NOT ENFORCED
 ) WITH (
   'connector' = 'upsert-kafka',
@@ -153,6 +171,7 @@ CREATE TABLE enriched_alerts (
   `vehicle_brand` STRING,
   `driver_name` STRING,
   `license_plate` STRING,
+  `location` ROW<`lat` DOUBLE, `lon` DOUBLE>,
   `event_time` AS TO_TIMESTAMP_LTZ(ts, 3),
   WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND,
   PRIMARY KEY (vehicle_id) NOT ENFORCED
@@ -179,45 +198,62 @@ CREATE TABLE enriched_alerts (
 
 
 SET 'parallelism.default' = '2';
+-- The enriched alerts are stamped with wall-clock detection time (UNIX_TIMESTAMP()),
+-- which is non-deterministic. We intentionally append each alert as-produced to
+-- Elasticsearch, so the planner's non-deterministic-update check must not reject the
+-- plan. IGNORE is the platform default; we set it explicitly to be safe.
+SET 'table.optimizer.non-deterministic-update.strategy' = 'IGNORE';
 EXECUTE STATEMENT SET
 BEGIN
 
+  -- Speed alerts already carry their coordinates (computed from the location stream).
   INSERT INTO vehicle_alerts
   SELECT
     vehicle_id,
     'EXCESSIVE_SPEED' AS alert_type,
     CAST(speed_kmh AS INT) as alert_value,
-    ts
+    ts,
+    ROW(latitude, longitude)
   FROM vehicle_speed
   WHERE speed_kmh > 120;
 
+  -- Engine/RPM alerts come from the sensor stream (no location), so attach the
+  -- latest known position for the vehicle.
   INSERT INTO vehicle_alerts
   SELECT
-    vehicle_id,
+    i.vehicle_id,
     'ENGINE_OVERHEAT' AS alert_type,
-    engine_temperature as alert_value,
-    ts
-  FROM vehicle_info
-  WHERE engine_temperature > 210;
+    i.engine_temperature as alert_value,
+    i.ts,
+    ROW(l.latitude, l.longitude)
+  FROM vehicle_info i
+  LEFT JOIN vehicle_latest_location l ON i.vehicle_id = l.vehicle_id
+  WHERE i.engine_temperature > 245;
 
   INSERT INTO vehicle_alerts
   SELECT
-    vehicle_id,
+    i.vehicle_id,
     'EXCESSIVE_RPM' AS alert_type,
-    average_rpm as alert_value,
-    ts
-  FROM vehicle_info
-  WHERE average_rpm > 7500;
+    i.average_rpm as alert_value,
+    i.ts,
+    ROW(l.latitude, l.longitude)
+  FROM vehicle_info i
+  LEFT JOIN vehicle_latest_location l ON i.vehicle_id = l.vehicle_id
+  WHERE i.average_rpm > 8800;
 
   INSERT INTO enriched_alerts
   SELECT
     a.vehicle_id,
     a.alert_type,
     a.alert_value,
-    a.ts,
+    -- Stamp the alert with wall-clock detection time (epoch millis) instead of the
+    -- simulated source timestamp, so the Kibana map can show a recent, fading time
+    -- window of incidents.
+    CAST(UNIX_TIMESTAMP() AS BIGINT) * 1000,
     d.vehicle_brand,
     d.driver_name,
-    d.license_plate
+    d.license_plate,
+    a.location
   FROM `vehicle_alerts` a
   LEFT JOIN `vehicle_description` d ON a.vehicle_id = d.vehicle_id;
 

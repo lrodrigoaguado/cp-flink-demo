@@ -11,7 +11,8 @@ do
     --from-file=keystore.jks=./certs/$i/$i.keystore.jks \
     --from-file=truststore.jks=./certs/$i/$i.truststore.jks \
     --from-file=jksPassword.txt=./certs/$i/$i.jksPassword.txt \
-    --namespace confluent
+    --namespace confluent \
+    --dry-run=client -o yaml | kubectl apply -f -
 done
 
 
@@ -21,5 +22,6 @@ do
     --from-file=fullchain.pem=./certs/$i/$i.pem \
     --from-file=cacerts.pem=./certs/$i/ca.pem  \
     --from-file=privkey.pem=./certs/$i/key.pem  \
-    --namespace confluent
+    --namespace confluent \
+    --dry-run=client -o yaml | kubectl apply -f -
 done

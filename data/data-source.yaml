@@ -32,7 +32,7 @@ spec:
                   "arg.properties": {
                       "range": {
                           "min": 0,
-                          "max": 150
+                          "max": 79
                       }
                   }
               }
@@ -80,7 +80,11 @@ spec:
     key.converter: "org.apache.kafka.connect.storage.StringConverter"
     value.converter: "io.confluent.connect.avro.AvroConverter"
     value.converter.schemas.enable: "true"
-    max.interval: "100"
+    # Sensor readings are emitted only every few seconds. Combined with the far-tail
+    # temperature/RPM thresholds in kafka.sql, this keeps engine/RPM alerts to an
+    # occasional exception rather than a constant stream. Tune alongside the speed
+    # episode probability in the Python generator to land ~5-10 alerts on screen.
+    max.interval: "3000"
     iterations: "-1"
     value.converter.schema.registry.url: "https://schemaregistry.confluent.svc.cluster.local:8081"
     value.converter.enhanced.avro.schema.support: "true"
@@ -139,9 +143,21 @@ data:
 
     # Simulation Configuration
     START_TIMESTAMP = datetime(2025, 1, 1, 9, 0, 0)
-    NUM_VEHICLES = 150
-    SPEED_MEAN, SPEED_STD = 110, 15
-    SPEED_MIN, SPEED_MAX = 75, 145
+    NUM_VEHICLES = 80
+
+    # Normal cruising stays comfortably below the 120 km/h alert threshold, so the
+    # vast majority of readings are not alerts.
+    SPEED_MEAN, SPEED_STD = 100, 8
+    SPEED_MIN, SPEED_MAX = 80, 118
+
+    # What actually trips the speed alert: rare, short "speeding episodes". These are
+    # the knobs to tune alert frequency. With ~80 vehicles and a ~2 min map window,
+    # an episode probability of ~0.0005/step yields a handful of speed alerts on
+    # screen at a time. Increase the probability for more alerts, decrease for fewer.
+    SPEED_EPISODE_PROB = 0.0005          # per vehicle, per step (~1 episode / 33 min)
+    SPEED_EPISODE_STEPS_MIN = 8
+    SPEED_EPISODE_STEPS_MAX = 12
+    SPEED_EPISODE_MIN, SPEED_EPISODE_MAX = 130, 155
 
     # SSL Configuration paths (mounted in pod)
     CA_LOCATION = '/mnt/secrets/connector-tls/cacerts.pem'
@@ -223,6 +239,7 @@ data:
 
             self.idx = random.randint(0, max(0, len(self.route) - 1))
             self.speed = get_next_speed()
+            self.episode_steps_left = 0
             self.direction = random.choice([1, -1])
             self.ts = START_TIMESTAMP + timedelta(seconds=random.randint(0, 3600))
 
@@ -240,12 +257,27 @@ data:
                 '_speed': self.speed
             }
 
+        def _update_speed(self):
+            """Pick the next speed: mostly normal cruising, occasionally a short,
+            high-speed episode that trips the > 120 km/h alert."""
+            if self.episode_steps_left > 0:
+                # Continue an ongoing speeding episode (stay in the high band).
+                self.speed = max(SPEED_EPISODE_MIN, min(SPEED_EPISODE_MAX, random.gauss(self.speed, 4)))
+                self.episode_steps_left -= 1
+            elif random.random() < SPEED_EPISODE_PROB:
+                # Begin a rare speeding episode.
+                self.episode_steps_left = random.randint(SPEED_EPISODE_STEPS_MIN, SPEED_EPISODE_STEPS_MAX) - 1
+                self.speed = random.uniform(SPEED_EPISODE_MIN, SPEED_EPISODE_MAX)
+            else:
+                # Normal cruising, comfortably below the alert threshold.
+                self.speed = get_next_speed(self.speed)
+
         def move(self):
             """Advance vehicle state."""
             if len(self.route) < 2: return
 
             # Update speed
-            self.speed = get_next_speed(self.speed)
+            self._update_speed()
 
             # Calculate next position (bounce at ends)
             next_idx = self.idx + self.direction
@@ -324,7 +356,7 @@ spec:
     spec:
       containers:
       - name: generator
-        image: python:3.10-slim
+        image: python:3.13-slim
         command: ["python", "/app/generate_data.py"]
         env:
         - name: KAFKA_BOOTSTRAP_SERVERS

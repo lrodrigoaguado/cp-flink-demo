@@ -27,7 +27,7 @@ DECLARE
     letter2 TEXT;
     letter3 TEXT;
 BEGIN
-    FOR i IN 0..149 LOOP
+    FOR i IN 0..79 LOOP
         -- Generate deterministic letters based on id
         letter1 := chr(65 + (i % 26));
         letter2 := chr(65 + ((i / 26) % 26));

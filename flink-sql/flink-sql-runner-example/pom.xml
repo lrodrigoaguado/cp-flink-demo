@@ -33,7 +33,7 @@ under the License.
     <!-- Given that this is an example skip maven deployment -->
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <flink.version>2.1.0</flink.version>
+        <flink.version>2.1.2</flink.version>
         <slf4j.version>2.0.17</slf4j.version>
         <log4j.version>2.25.2</log4j.version>
     </properties>
@@ -113,7 +113,7 @@ under the License.
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.3</version>
+            <version>42.7.7</version>
         </dependency>
     </dependencies>
 
