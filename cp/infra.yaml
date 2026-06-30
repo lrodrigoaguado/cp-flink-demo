@@ -6,8 +6,8 @@ metadata:
 spec:
   dataVolumeCapacity: 2G
   image:
-    application: confluentinc/cp-server:8.2.1
-    init: confluentinc/confluent-init-container:3.2.2
+    application: confluentinc/cp-server:8.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   listeners:
     controller:
       tls:
@@ -69,8 +69,8 @@ spec:
         memory: 512Mi
         cpu: 200m
   image:
-    application: confluentinc/cp-server:8.2.1
-    init: confluentinc/confluent-init-container:3.2.2
+    application: confluentinc/cp-server:8.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   dataVolumeCapacity: 10Gi
   tls:
     secretRef: kafka-tls
@@ -139,8 +139,8 @@ spec:
         memory: 256Mi
         cpu: 100m
   image:
-    application: confluentinc/cp-schema-registry:8.2.1
-    init: confluentinc/confluent-init-container:3.2.2
+    application: confluentinc/cp-schema-registry:8.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   tls:
     secretRef: schemaregistry-tls
   authentication:
@@ -177,8 +177,8 @@ spec:
       readiness:
         initialDelaySeconds: 240
   image:
-    application: confluentinc/cp-server-connect:8.2.1
-    init: confluentinc/confluent-init-container:3.2.2
+    application: confluentinc/cp-server-connect:8.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   tls:
     secretRef: connect-tls
   authentication:
@@ -221,8 +221,8 @@ metadata:
   namespace: confluent
 spec:
   image:
-    application: confluentinc/cp-kafka-rest:8.2.1
-    init: confluentinc/confluent-init-container:3.2.2
+    application: confluentinc/cp-kafka-rest:8.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   replicas: 1
   tls:
     secretRef: krp-tls
@@ -271,7 +271,7 @@ spec:
         cpu: 200m
   image:
     application: confluentinc/cp-enterprise-control-center-next-gen:2.5.1
-    init: confluentinc/confluent-init-container:3.2.2
+    init: confluentinc/confluent-init-container:3.3.0
   dataVolumeCapacity: 10Gi
   tls:
     secretRef: controlcenter-ng-tls
