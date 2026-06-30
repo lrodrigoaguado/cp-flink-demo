@@ -22,3 +22,7 @@ RUN mkdir /opt/flink/usrlib
 ADD target/flink-sql-runner-example-*.jar /opt/flink/usrlib/sql-runner.jar
 ADD sql-scripts /opt/flink/usrlib/sql-scripts
 ADD flink-app1 /mnt/secrets/flink-app1-tls
+
+# Enable the S3 (s3a) filesystem plugin so Flink can checkpoint/savepoint to MinIO.
+RUN mkdir -p /opt/flink/plugins/s3-fs-hadoop && \
+    cp /opt/flink/opt/flink-s3-fs-hadoop-*.jar /opt/flink/plugins/s3-fs-hadoop/

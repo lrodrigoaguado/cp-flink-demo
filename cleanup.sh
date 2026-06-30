@@ -31,6 +31,10 @@ pkill -f "kubectl -n confluent port-forward" 2>/dev/null || true
 log "Stopping Postgres docker-compose"
 try docker compose -f data/db/docker-compose.yml down -v
 
+# Stop and remove MinIO object storage
+log "Stopping MinIO docker-compose"
+try docker compose -f minio/docker-compose.yml down -v
+
 # K8s resources (only if cluster exists)
 log "Deleting Kubernetes resources (if cluster exists)"
 kind delete cluster

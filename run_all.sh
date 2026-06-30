@@ -6,7 +6,7 @@ set -euo pipefail
 #
 # Usage: ./run_all.sh [--from PHASE] [--only PHASE] [--no-background-build] [-h|--help]
 # Phases run in this order:
-#   preconditions -> cluster -> operators -> certs -> cp -> data -> flink -> es
+#   preconditions -> cluster -> operators -> certs -> cp -> data -> minio -> flink -> es
 # Each phase mirrors a numbered section of the README, so the two deploy paths
 # stay easy to keep in sync.
 
@@ -261,7 +261,17 @@ phase_data() {
   wait_connector_running "vehicle-info" "confluent" 300
 }
 
-# 4 + 5. Install CP Flink (cert-manager, operator, CMF) and run the Flink app
+# 4. Deploy local object storage (MinIO) for Flink checkpoints/savepoints.
+# Runs as a host container (like Postgres), separate from the Kind compute cluster.
+phase_minio() {
+  log "[phase: minio] Starting MinIO object storage (host docker-compose)"
+  docker compose -f minio/docker-compose.yml up -d
+  log "Waiting for MinIO bucket initialization (createbuckets) to complete"
+  docker compose -f minio/docker-compose.yml wait createbuckets
+  log "MinIO ready: S3 API http://host.docker.internal:9000 | console http://localhost:9001 (minioadmin/minioadmin)"
+}
+
+# 5 + 6. Install CP Flink (cert-manager, operator, CMF) and run the Flink app
 phase_flink() {
   log "[phase: flink] Installing cert-manager (required by Flink operator)"
   kubectl create -f "https://github.com/jetstack/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
@@ -314,7 +324,7 @@ phase_flink() {
   kubectl_wait_all_ready "confluent" 600s
 }
 
-# 6. Write results to Elasticsearch and import the Kibana dashboard
+# 7. Write results to Elasticsearch and import the Kibana dashboard
 phase_es() {
   log "[phase: es] Creating Elasticsearch index templates"
   curl -sS -X PUT "http://localhost:9200/_index_template/vehicle-alerts-template" \
@@ -349,10 +359,11 @@ phase_es() {
   log "- Control Center: https://controlcenter-ng.confluent.svc.cluster.local:9021/ (user: admin, if configured)"
   log "- Kibana: https://localhost:5601 (user: elastic / elastic)"
   log "- Elasticsearch: http://localhost:9200"
+  log "- MinIO console: http://localhost:9001 (user: minioadmin / minioadmin)"
 }
 
 # -------- Orchestration --------
-PHASE_ORDER=(preconditions cluster operators certs cp data flink es)
+PHASE_ORDER=(preconditions cluster operators certs cp data minio flink es)
 
 usage() {
   cat <<EOF
@@ -405,6 +416,7 @@ run_phase() {
       ;;
     cp)    phase_cp ;;
     data)  phase_data ;;
+    minio) phase_minio ;;
     flink) phase_flink ;;
     es)    phase_es ;;
   esac
