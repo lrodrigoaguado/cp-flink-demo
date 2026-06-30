@@ -21,15 +21,17 @@ This project demonstrates a complete, real-time data pipeline built on the **Con
     - [Create Topics \& Start Postgres](#create-topics--start-postgres)
     - [Start the Data Generators](#start-the-data-generators)
       - [Deploy data generation (Vehicle Info and Locations)](#deploy-data-generation-vehicle-info-and-locations)
-  - [🌀 4. Install CP Flink](#-4-install-cp-flink)
+  - [📦 4. Deploy object storage (MinIO)](#-4-deploy-object-storage-minio)
+  - [🌀 5. Install CP Flink](#-5-install-cp-flink)
     - [Install Prerequities](#install-prerequities)
     - [Install Operators](#install-operators)
     - [Deploy CMF REST Class](#deploy-cmf-rest-class)
-  - [⚡ 5. Process the data with Flink](#-5-process-the-data-with-flink)
+  - [⚡ 6. Process the data with Flink](#-6-process-the-data-with-flink)
     - [Build the Application Image](#build-the-application-image)
     - [Deploy the Flink Application](#deploy-the-flink-application)
-  - [🔍 6. Write results to Elasticsearch](#-6-write-results-to-elasticsearch)
-  - [🧹 7. Cleanup](#-7-cleanup)
+  - [🔍 7. Write results to Elasticsearch](#-7-write-results-to-elasticsearch)
+  - [💾 8. Play with checkpoints \& savepoints](#-8-play-with-checkpoints--savepoints)
+  - [🧹 9. Cleanup](#-9-cleanup)
 
 
 ## Disclaimer
@@ -255,7 +257,22 @@ kubectl apply -f data/data-source.yaml
 
 
 
-## 🌀 4. Install CP Flink
+## 📦 4. Deploy object storage (MinIO)
+
+CP Flink uses **checkpoints** and **savepoints** to persist its state so a job can recover from failures and survive upgrades. In production this state lives in object storage (Amazon S3, Google Cloud Storage, Azure Blob) that sits **outside** the compute cluster. To mirror that locally we run [MinIO](https://min.io/) — an S3-compatible object store — as a host container, the same way the Postgres database runs outside the Kubernetes cluster. Flink reaches it at `host.docker.internal:9000`.
+
+Start MinIO and create the bucket that will hold the checkpoints and savepoints:
+
+```shell
+docker compose -f minio/docker-compose.yml up -d
+docker compose -f minio/docker-compose.yml wait createbuckets
+```
+
+🔍 **Check Status:** Open the MinIO console at **http://localhost:9001** (user: `minioadmin` / password: `minioadmin`) and confirm the `flink` bucket exists. It will stay empty until the Flink job starts checkpointing in the next steps.
+
+---
+
+## 🌀 5. Install CP Flink
 
 Now, let's deploy the Flink on Kubernetes operator and Confluent Manager for Apache Flink (CMF).
 
@@ -328,7 +345,7 @@ kubectl -n confluent port-forward controlcenter-ng-0 9021:9021 > /dev/null 2>&1 
 
 ---
 
-## ⚡ 5. Process the data with Flink
+## ⚡ 6. Process the data with Flink
 
 With the full environment ready, it's time to deploy and run our Flink SQL job.
 
@@ -370,9 +387,11 @@ kubectl apply -f flink/flink-application.yaml
 watch kubectl get pods
 ```
 
+> 💾 **State storage:** This application is configured to **checkpoint every 30 seconds** to the MinIO bucket (`s3a://flink/checkpoints`) and to take **savepoints** under `s3a://flink/savepoints`. You will see these appear in the MinIO console once the job is running — explore them in [section 8](#-8-play-with-checkpoints--savepoints).
+
 ---
 
-## 🔍 6. Write results to Elasticsearch
+## 🔍 7. Write results to Elasticsearch
 
 The Flink jobs will start writing alerts to the topic `vehicle-alerts-enriched`, and we would like to analyze in real time those alerts. We will use Elasticsearch for that.
 
@@ -447,7 +466,38 @@ Surrounding panels keep the KPI gauges, the alerts-over-time trend and the per-d
 
 ---
 
-## 🧹 7. Cleanup
+## 💾 8. Play with checkpoints & savepoints
+
+Now that the pipeline is running, you can see CP Flink's fault-tolerance in action. Flink continuously **checkpoints** its state to MinIO, and you can trigger on-demand **savepoints** — both land in the `flink` bucket you created earlier.
+
+### Observe checkpoints
+
+Open the MinIO console at **http://localhost:9001** (`minioadmin` / `minioadmin`) and browse to the `flink` bucket. Under `checkpoints/<job-id>/` you will see `chk-<n>` folders that refresh roughly every 30 seconds as the job checkpoints its state.
+
+### Trigger a savepoint
+
+A savepoint is a manually-triggered, self-contained snapshot of the job state. Trigger one by bumping the `savepointTriggerNonce` on the Flink application:
+
+```shell
+kubectl patch flinkapplication flink-app1 -n confluent --type merge \
+  -p '{"spec":{"job":{"savepointTriggerNonce":1}}}'
+```
+
+A new `savepoint-*` directory will appear under `savepoints/` in the MinIO console. Bump the nonce to any new number to take another savepoint.
+
+### Recover from a failure
+
+Because the job checkpoints to MinIO, it can recover its state after a crash. Kill a TaskManager pod and watch Flink restart it and resume from the last checkpoint:
+
+```shell
+kubectl delete pod -l component=taskmanager -n confluent
+```
+
+In the **Apache Flink Dashboard** (within Control Center) you will see the job restart, and the Kibana fleet dashboard keeps updating — the processing state (per-vehicle speed, alert windows) survived the failure because it was restored from MinIO.
+
+---
+
+## 🧹 9. Cleanup
 
 To completely remove the Kubernetes cluster and all its resources, simply run:
 
@@ -455,8 +505,9 @@ To completely remove the Kubernetes cluster and all its resources, simply run:
 kind delete cluster
 ```
 
-Stop and remove the Postgres containers:
+Stop and remove the Postgres and MinIO containers:
 
 ```shell
 docker compose -f data/db/docker-compose.yml down -v
+docker compose -f minio/docker-compose.yml down -v
 ```
